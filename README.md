@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# Pinaka - Meat Shop Management System
 
-TODO: Document your project here
+Retail Meat Shop Management System with Dashboard, Inventory, Billing, and Reports.

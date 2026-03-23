@@ -40,7 +40,7 @@ export default function Dressing() {
   const [ribs, setRibs] = useState("");
   const [ham, setHam] = useState("");
   const [offals, setOffals] = useState("");
-  const [showPackaging, setShowPackaging] = useState(false);
+  const [packagingBatch, setPackagingBatch] = useState<string | null>(null);
 
   // Packaging
   const [pkgQty, setPkgQty] = useState<number[]>(new Array(6).fill(0));
@@ -79,19 +79,30 @@ export default function Dressing() {
       status: "Slaughtered",
     };
     setRecords([newRecord, ...records]);
-    setShowPackaging(true);
+    setPackagingBatch(nextBatch);
     toast({ title: "Saved", description: `After slaughter data saved for ${nextBatch}` });
   };
 
   const handleMoveToInventory = () => {
-    toast({ title: "Moved to Inventory", description: "All packets added to inventory" });
-    setShowPackaging(false);
+    if (packagingBatch) {
+      setRecords(records.map(r => r.batch === packagingBatch ? { ...r, status: "Packaged" } : r));
+    }
+    toast({ title: "Moved to Inventory", description: "All packets added to inventory successfully!" });
+    setPackagingBatch(null);
     setPkgQty(new Array(6).fill(0));
     setLinkedAnimal("");
     setHead("");
     setRibs("");
     setHam("");
     setOffals("");
+  };
+
+  const handleSavePackaging = () => {
+    if (packagingBatch) {
+      toast({ title: "Packaging Saved", description: `Packaging data saved for ${packagingBatch}` });
+      setPackagingBatch(null);
+      setPkgQty(new Array(6).fill(0));
+    }
   };
 
   const handleDelete = (batch: string) => {
@@ -157,9 +168,9 @@ export default function Dressing() {
       </div>
 
       {/* Packaging */}
-      {showPackaging && (
+      {packagingBatch && (
         <div className="rounded-lg border bg-card p-6 shadow-sm mb-8">
-          <h2 className="text-lg font-semibold mb-4">Packaging</h2>
+          <h2 className="text-lg font-semibold mb-4">Packaging — Batch [{packagingBatch}]</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -197,7 +208,10 @@ export default function Dressing() {
               </tbody>
             </table>
           </div>
-          <Button className="mt-4" onClick={handleMoveToInventory}>Move to Inventory</Button>
+          <div className="mt-6 flex gap-3">
+            <Button onClick={handleMoveToInventory} className="bg-[#B71C1C] hover:bg-[#8e1616] text-white">Move to Inventory</Button>
+            <Button variant="outline" onClick={handleSavePackaging} className="border-[#B71C1C] text-[#B71C1C] hover:bg-[#B71C1C] hover:text-white">Save Packaging</Button>
+          </div>
         </div>
       )}
 
@@ -218,7 +232,12 @@ export default function Dressing() {
               </span>
             )},
             { header: "Actions", accessor: (r) => (
-              <div className="flex gap-1">
+              <div className="flex gap-1 items-center">
+                {r.status === "Slaughtered" && (
+                  <Button variant="outline" size="sm" className="h-8 text-xs border-[#B71C1C] text-[#B71C1C] hover:bg-[#B71C1C] hover:text-white mr-2" onClick={() => setPackagingBatch(r.batch)}>
+                    Packaging
+                  </Button>
+                )}
                 <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(r.batch)}><Trash2 className="h-3.5 w-3.5" /></Button>
               </div>

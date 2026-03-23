@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Bell, ChevronDown, Ham, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { label: "Dashboard", path: "/" },
@@ -15,6 +16,7 @@ const navItems = [
     ],
   },
   { label: "Billing", path: "/billing" },
+  { label: "Costs", path: "/costs" },
   { label: "Reports", path: "/reports" },
 ];
 
@@ -66,12 +68,10 @@ export default function Navbar() {
         <div className="container flex items-center gap-1 h-11">
           {navItems.map((item) =>
             item.children ? (
-              <div key={item.label} className="relative">
-                <button
-                  onClick={() => setInvOpen(!invOpen)}
-                  onBlur={() => setTimeout(() => setInvOpen(false), 150)}
+              <DropdownMenu key={item.label}>
+                <DropdownMenuTrigger
                   className={cn(
-                    "flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    "flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md transition-colors outline-none",
                     isInventoryActive
                       ? "text-primary bg-accent"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -79,27 +79,23 @@ export default function Navbar() {
                 >
                   {item.label}
                   <ChevronDown className="h-3.5 w-3.5" />
-                </button>
-                {invOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-44 bg-card border rounded-md shadow-lg py-1 z-50">
-                    {item.children.map((child) => (
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-44">
+                  {item.children.map((child) => (
+                    <DropdownMenuItem asChild key={child.path}>
                       <Link
-                        key={child.path}
                         to={child.path}
-                        onClick={() => setInvOpen(false)}
                         className={cn(
-                          "block px-4 py-2 text-sm transition-colors",
-                          isActive(child.path)
-                            ? "text-primary bg-accent"
-                            : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                          "w-full cursor-pointer",
+                          isActive(child.path) ? "text-primary font-medium" : "text-muted-foreground"
                         )}
                       >
                         {child.label}
                       </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link
                 key={item.path}

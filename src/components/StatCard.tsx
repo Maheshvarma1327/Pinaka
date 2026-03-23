@@ -7,6 +7,7 @@ interface StatCardProps {
   icon: ReactNode;
   color?: "default" | "success" | "info" | "warning" | "destructive";
   subtitle?: string;
+  className?: string;
 }
 
 const colorMap = {
@@ -25,9 +26,9 @@ const bgMap = {
   destructive: "bg-destructive/10",
 };
 
-export default function StatCard({ title, value, icon, color = "default", subtitle }: StatCardProps) {
+export default function StatCard({ title, value, icon, color = "default", subtitle, className }: StatCardProps) {
   return (
-    <div className="rounded-lg border bg-card p-5 shadow-sm">
+    <div className={cn("rounded-lg border bg-card p-5 shadow-sm", className)}>
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground">{title}</p>

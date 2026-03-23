@@ -9,6 +9,7 @@ import Supply from "@/pages/Supply";
 import InventoryIn from "@/pages/InventoryIn";
 import InventoryOut from "@/pages/InventoryOut";
 import Billing from "@/pages/Billing";
+import Costs from "@/pages/Costs";
 import Reports from "@/pages/Reports";
 import NotFound from "@/pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/inventory/in" element={<InventoryIn />} />
             <Route path="/inventory/out" element={<InventoryOut />} />
             <Route path="/billing" element={<Billing />} />
+            <Route path="/costs" element={<Costs />} />
             <Route path="/reports" element={<Reports />} />
           </Route>
           <Route path="*" element={<NotFound />} />
