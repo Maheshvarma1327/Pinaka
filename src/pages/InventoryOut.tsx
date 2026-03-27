@@ -8,8 +8,17 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { 
   IndianRupee, Wallet, Smartphone, Beef, CookingPot, 
-  Pencil, Trash2, Receipt, FileText, Download, X, Ham 
+  Pencil, Trash2, Receipt, FileText, Download, X, Ham, DownloadCloud,
+  Package, Bone, TrendingUp
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useParams } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -24,11 +33,17 @@ interface OutRecord {
   date: string;
   boneSold: number;
   bonelessSold: number;
+  frySold?: number;
+  currySold?: number;
+  mixedSold?: number;
   fry: number;
   curry: number;
   cash: number;
   phonePe: number;
   total: number;
+  discountGiven?: number;
+  boneUsed?: number;
+  bonelessUsed?: number;
   billId: string;
 }
 
@@ -45,28 +60,56 @@ const initialRecords: OutRecord[] = [
   { id: "10", date: "2026-03-19", boneSold: 10, bonelessSold: 7, fry: 4, curry: 3, cash: 3400, phonePe: 2100, total: 5500, billId: "PK-010" },
 ];
 
-export default function InventoryOut() {
+export default function InventoryOut({ 
+  shopIdFilter, 
+  dateFilter = "Today", 
+  customStart, 
+  customEnd 
+}: { 
+  shopIdFilter?: string; 
+  dateFilter?: string; 
+  customStart?: string; 
+  customEnd?: string; 
+}) {
+  const params = useParams();
+  const id = shopIdFilter || params.id;
+  const shopName = id === "shop1" ? "Palipattu Shop" : id === "shop2" ? "Tirupati Shop" : "Pinaka Default Shop";
+  const shopLocation = id === "shop1" ? "Palipattu" : id === "shop2" ? "Tirupati" : "Main Branch";
+
   const { toast } = useToast();
   const [records, setRecords] = useState<OutRecord[]>(initialRecords);
   const [selectedBill, setSelectedBill] = useState<OutRecord | null>(null);
 
+  const defaultCosts = { fry: 280, curry: 250, bone: 200, boneless: 400, mixed: 200 };
+  const [sellingCosts] = useState(() => {
+    try {
+      const saved = localStorage.getItem("pinaka_selling_costs");
+      return saved ? JSON.parse(saved) : defaultCosts;
+    } catch {
+      return defaultCosts;
+    }
+  });
+
   // Form State
-  const [boneFry, setBoneFry] = useState("");
-  const [bonelessFry, setBonelessFry] = useState("");
-  const [fryOutput, setFryOutput] = useState("");
-  const [curryOutput, setCurryOutput] = useState("");
   
   const [boneSold, setBoneSold] = useState("");
-  const [bonePrice, setBonePrice] = useState("200");
   const [bonelessSold, setBonelessSold] = useState("");
-  const [bonelessPrice, setBonelessPrice] = useState("250");
+  const [frySold, setFrySold] = useState("");
+  const [currySold, setCurrySold] = useState("");
+  const [mixedSold, setMixedSold] = useState("");
   
   const [cash, setCash] = useState("");
   const [phonePe, setPhonePe] = useState("");
 
-  const boneTotalAmt = (Number(boneSold) || 0) * (Number(bonePrice) || 0);
-  const bonelessTotalAmt = (Number(bonelessSold) || 0) * (Number(bonelessPrice) || 0);
-  const paymentTotal = (Number(cash) || 0) + (Number(phonePe) || 0);
+  const boneTotalAmt = (Number(boneSold) || 0) * sellingCosts.bone;
+  const bonelessTotalAmt = (Number(bonelessSold) || 0) * sellingCosts.boneless;
+  const fryTotalAmt = (Number(frySold) || 0) * sellingCosts.fry;
+  const curryTotalAmt = (Number(currySold) || 0) * sellingCosts.curry;
+  const mixedTotalAmt = (Number(mixedSold) || 0) * sellingCosts.mixed;
+  
+  const grandTotalAmt = boneTotalAmt + bonelessTotalAmt + fryTotalAmt + curryTotalAmt + mixedTotalAmt;
+  const paymentTotalInitial = (Number(cash) || 0) + (Number(phonePe) || 0);
+  const remainingBalance = grandTotalAmt - paymentTotalInitial;
 
   const todayStr = new Date().toISOString().split("T")[0];
   const todayRecords = records.filter(r => r.date === todayStr);
@@ -77,9 +120,75 @@ export default function InventoryOut() {
   const todayFry = todayRecords.reduce((s, r) => s + r.fry, 0);
   const todayCurry = todayRecords.reduce((s, r) => s + r.curry, 0);
 
-  const handleSave = () => {
-    if (!boneSold && !bonelessSold && !fryOutput && !curryOutput) {
-      toast({ title: "Error", description: "Empty entry. Provide some data.", variant: "destructive" });
+  // Filter records based on dateFilter prop
+  let filteredRecords = records;
+  const now = new Date();
+  
+  if (dateFilter === "Today") {
+    filteredRecords = records.filter(r => r.date === todayStr);
+  } else if (dateFilter === "This Week") {
+    const pastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    filteredRecords = records.filter(r => r.date >= pastWeek);
+  } else if (dateFilter === "This Month") {
+    const pastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    filteredRecords = records.filter(r => r.date >= pastMonth);
+  } else if (dateFilter === "Custom" && customStart && customEnd) {
+    filteredRecords = records.filter(r => r.date >= customStart && r.date <= customEnd);
+  }
+
+  // Overall KPIs Calculation
+  const invIn = (() => {
+    try { const d = localStorage.getItem(`pinaka_shop_inventory_in_${id}`); return d ? JSON.parse(d) : []; } catch { return []; }
+  })();
+  const totalBoneIn = invIn.reduce((s: any, r: any) => s + (Number(r.bone) || 0), 0);
+  const totalBonelessIn = invIn.reduce((s: any, r: any) => s + (Number(r.boneless) || 0), 0);
+  const totalMixedIn = invIn.reduce((s: any, r: any) => s + (Number(r.mixed) || 0), 0);
+  
+  const totalFryPrep = records.reduce((s, r) => s + (Number(r.fry) || 0), 0);
+  const totalCurryPrep = records.reduce((s, r) => s + (Number(r.curry) || 0), 0);
+
+  const overallBoneSold = records.reduce((s, r) => s + (Number(r.boneSold) || 0), 0);
+  const overallBonelessSold = records.reduce((s, r) => s + (Number(r.bonelessSold) || 0), 0);
+  const overallBoneUsed = records.reduce((s, r) => s + (Number(r.boneUsed) || 0), 0);
+  const overallBonelessUsed = records.reduce((s, r) => s + (Number(r.bonelessUsed) || 0), 0);
+  
+  const overallMixedSold = records.reduce((s, r) => s + (Number(r.mixedSold) || 0), 0);
+  const overallFrySold = records.reduce((s, r) => s + (Number(r.frySold) || 0), 0);
+  const overallCurrySold = records.reduce((s, r) => s + (Number(r.currySold) || 0), 0);
+
+  const availBone = totalBoneIn - overallBoneSold - overallBoneUsed;
+  const availBoneless = totalBonelessIn - overallBonelessSold - overallBonelessUsed;
+  const availMixed = totalMixedIn - overallMixedSold;
+  const availFry = totalFryPrep - overallFrySold;
+  const availCurry = totalCurryPrep - overallCurrySold;
+  const totalStock = availBone + availBoneless + availMixed + availFry + availCurry;
+
+  // KPIs for Sold & Payment should compute over filteredRecords
+  const totalBoneSold = filteredRecords.reduce((s, r) => s + (Number(r.boneSold) || 0), 0);
+  const totalBonelessSold = filteredRecords.reduce((s, r) => s + (Number(r.bonelessSold) || 0), 0);
+  const totalMixedSold = filteredRecords.reduce((s, r) => s + (Number(r.mixedSold) || 0), 0);
+  const totalFrySold = filteredRecords.reduce((s, r) => s + (Number(r.frySold) || 0), 0);
+  const totalCurrySold = filteredRecords.reduce((s, r) => s + (Number(r.currySold) || 0), 0);
+
+  const totalCash = filteredRecords.reduce((s, r) => s + (Number(r.cash) || 0), 0);
+  const totalPhonePe = filteredRecords.reduce((s, r) => s + (Number(r.phonePe) || 0), 0);
+  const discountedAmount = filteredRecords.reduce((s, r) => s + (Number(r.discountGiven) || 0), 0);
+
+  // Payment Form calculation
+  const paymentTotal = (Number(cash) || 0) + (Number(phonePe) || 0);
+  const discountGivenVal = Math.max(0, grandTotalAmt - paymentTotal);
+
+  // Export State
+  const [exportFormat, setExportFormat] = useState<"CSV" | "PDF">("CSV");
+  const [exportRange, setExportRange] = useState<"Daily" | "Weekly" | "Monthly" | "Custom">("Daily");
+  const [exportStart, setExportStart] = useState(todayStr);
+  const [exportEnd, setExportEnd] = useState(todayStr);
+
+
+
+  const handleSaveSales = () => {
+    if (!boneSold && !bonelessSold && !frySold && !currySold && !mixedSold) {
+      toast({ title: "Error", description: "Empty sales entry.", variant: "destructive" });
       return;
     }
     const newRecord: OutRecord = {
@@ -87,19 +196,21 @@ export default function InventoryOut() {
       date: todayStr,
       boneSold: Number(boneSold) || 0,
       bonelessSold: Number(bonelessSold) || 0,
-      fry: Number(fryOutput) || 0,
-      curry: Number(curryOutput) || 0,
+      frySold: Number(frySold) || 0,
+      currySold: Number(currySold) || 0,
+      mixedSold: Number(mixedSold) || 0,
+      fry: 0, curry: 0,
       cash: Number(cash) || 0,
       phonePe: Number(phonePe) || 0,
-      total: paymentTotal,
+      total: grandTotalAmt,
+      discountGiven: discountGivenVal,
       billId: `PK-${String(records.length + 1).padStart(3, "0")}`,
     };
     setRecords([newRecord, ...records]);
-    toast({ title: "Success", description: "Daily entry recorded successfully." });
+    toast({ title: "Success", description: "Daily sales recorded successfully." });
     
-    // Clear form
-    setBoneFry(""); setBonelessFry(""); setFryOutput(""); setCurryOutput("");
-    setBoneSold(""); setBonelessSold(""); setCash(""); setPhonePe("");
+    setBoneSold(""); setBonelessSold(""); setFrySold(""); setCurrySold(""); setMixedSold("");
+    setCash(""); setPhonePe("");
   };
 
   const handleDelete = (id: string) => {
@@ -107,118 +218,247 @@ export default function InventoryOut() {
     toast({ title: "Deleted", description: "Record removed" });
   };
 
+  const handleExport = () => {
+    let filteredRecords = records;
+    const now = new Date();
+    
+    if (exportRange === "Daily") {
+      filteredRecords = records.filter(r => r.date === todayStr);
+    } else if (exportRange === "Weekly") {
+      const pastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      filteredRecords = records.filter(r => r.date >= pastWeek);
+    } else if (exportRange === "Monthly") {
+      const pastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      filteredRecords = records.filter(r => r.date >= pastMonth);
+    } else if (exportRange === "Custom") {
+      filteredRecords = records.filter(r => r.date >= exportStart && r.date <= exportEnd);
+    }
+    
+    // Distinguish sales rows over production rows
+    filteredRecords = filteredRecords.filter(r => !String(r.billId).startsWith("PREP"));
+
+    if (exportFormat === "CSV") {
+      const header = "Date,Bone(kg),Boneless(kg),Fry Sale,Curry Sale,Mixed Sale,Cash(Rs),PhonePe(Rs),Total(Rs),Bill Id\n";
+      const rows = filteredRecords.map(r => 
+        `${r.date},${r.boneSold},${r.bonelessSold},${r.frySold || 0},${r.currySold || 0},${r.mixedSold || 0},${r.cash},${r.phonePe},${r.total},${r.billId}`
+      ).join("\n");
+      
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + `Shop Name:,${shopName}\nLocation:,${shopLocation}\nReport Range:,${exportRange} ${exportRange === "Custom" ? `(${exportStart} to ${exportEnd})` : ""}\n\n`
+        + header 
+        + rows;
+        
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `${shopName.replace(/\s+/g, "_")}_${exportRange}_Sales.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        toast({ title: "Popup Blocked", description: "Allow popups to download PDF." });
+        return;
+      }
+      
+      const rowsHtml = filteredRecords.map(r => `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.date}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.boneSold}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.bonelessSold}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.frySold || 0}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.currySold || 0}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.mixedSold || 0}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">₹${r.cash}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">₹${r.phonePe}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">₹${r.total}</td>
+        </tr>
+      `).join("");
+      
+      const html = `
+        <html>
+          <head>
+            <title>${shopName} - Sales Report</title>
+            <style>
+              body { font-family: sans-serif; padding: 20px; color: #333; }
+              h1 { color: #B71C1C; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; text-align: left; font-size: 14px; }
+              th { background: #f4f4f5; padding: 10px 8px; border-bottom: 2px solid #ddd; }
+            </style>
+          </head>
+          <body>
+            <h1>${shopName}</h1>
+            <p><strong>Location:</strong> ${shopLocation}</p>
+            <p><strong>Report Range:</strong> ${exportRange} ${exportRange === "Custom" ? `(${customStart} to ${customEnd})` : ""}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Bone</th>
+                  <th>Boneless</th>
+                  <th>Fry</th>
+                  <th>Curry</th>
+                  <th>Mixed</th>
+                  <th>Cash</th>
+                  <th>PhonePe</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+            <script>
+              window.onload = () => window.print();
+            </script>
+          </body>
+        </html>
+      `;
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
+    
+    toast({ title: "Export Started", description: `Generating ${exportFormat} for ${exportRange}...` });
+  };
+
   return (
     <div className="animate-fade-in">
-      <Breadcrumb items={[{ label: "Inventory", path: "/inventory/in" }, { label: "Inventory Out" }]} />
-      <h1 className="text-2xl font-bold mb-6">Inventory Out / Daily Operations</h1>
 
-      {/* EOD Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <StatCard title="Cash Received" value={`₹${todayCash.toLocaleString("en-IN")}`} icon={<Wallet className="h-5 w-5 text-success" />} color="success" />
-        <StatCard title="PhonePe Received" value={`₹${todayPhonePe.toLocaleString("en-IN")}`} icon={<Smartphone className="h-5 w-5 text-info" />} color="info" />
-        <StatCard title="Total Sales Today" value={`₹${todaySales.toLocaleString("en-IN")}`} icon={<IndianRupee className="h-5 w-5 text-[#B71C1C]" />} />
-        <StatCard title="Fry Prepared" value={`${todayFry} kg`} icon={<Beef className="h-5 w-5 text-muted-foreground" />} />
-        <StatCard title="Curry Prepared" value={`${todayCurry} kg`} icon={<CookingPot className="h-5 w-5 text-muted-foreground" />} />
+      {/* KPI Dashboard - Top Section */}
+      <div className="space-y-6 mb-8">
+         {/* ROW 1: TOTAL AVAILABLE STOCK */}
+         <div>
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Total Available Stock & Preparation</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <StatCard title="Overall Total" value={`${totalStock} kg`} color={totalStock < 0 ? "destructive" : "info"} icon={<Package className="h-4 w-4" />} />} />
+              <StatCard title="Bone Available" value={`${availBone} kg`} color={availBone < 0 ? "destructive" : "success"} icon={<Bone className="h-4 w-4" />} />} />
+              <StatCard title="Boneless Avail." value={`${availBoneless} kg`} color={availBoneless < 0 ? "destructive" : "success"} icon={<Beef className="h-4 w-4" />} />} />
+              <StatCard title="Mixed Avail." value={`${availMixed} kg`} color={availMixed < 0 ? "destructive" : "success"} icon={<Package className="h-4 w-4" />} />} />
+              <StatCard title="Fry Prep." value={`${availFry} kg`} color="info" icon={<Beef className="h-4 w-4" />} />} />
+              <StatCard title="Curry Prep." value={`${availCurry} kg`} color="info" icon={<CookingPot className="h-4 w-4" />} />} />
+            </div>
+         </div>
+
+         {/* ROW 2: TOTAL STOCK SOLD */}
+         <div>
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Total Stock Sold</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+              <StatCard title="Overall Total Sold" className="bg-card border-dashed" value={`${totalBoneSold + totalBonelessSold + totalMixedSold + totalFrySold + totalCurrySold} kg`} icon={<Package className="h-4 w-4 text-muted-foreground" />} />
+              <StatCard title="Bone Sold" value={`${totalBoneSold} kg`} icon={<Bone className="h-4 w-4 text-muted-foreground" />} />
+              <StatCard title="Boneless Sold" value={`${totalBonelessSold} kg`} icon={<Beef className="h-4 w-4 text-muted-foreground" />} />
+              <StatCard title="Mixed Sold" value={`${totalMixedSold} kg`} icon={<Package className="h-4 w-4 text-muted-foreground" />} />
+              <StatCard title="Fry Sold" value={`${totalFrySold} kg`} icon={<Beef className="h-4 w-4 text-muted-foreground" />} />
+              <StatCard title="Curry Sold" value={`${totalCurrySold} kg`} icon={<CookingPot className="h-4 w-4 text-muted-foreground" />} />
+            </div>
+         </div>
+
+         {/* ROW 3: TOTAL AMOUNT */}
+         <div>
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Total Sales Amount</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard title="Cash Received" value={`₹${totalCash.toLocaleString("en-IN")}`} color="success" icon={<Wallet className="h-4 w-4" />} />} />
+              <StatCard title="PhonePe Received" value={`₹${totalPhonePe.toLocaleString("en-IN")}`} color="info" icon={<Smartphone className="h-4 w-4" />} />} />
+              <StatCard title="Discount Given" value={`₹${discountedAmount.toLocaleString("en-IN")}`} color="insights" icon={<TrendingUp className="h-4 w-4" />} />} />
+            </div>
+         </div>
       </div>
 
       {/* Entry Form */}
-      <div className="rounded-xl border bg-card shadow-sm mb-8 overflow-hidden">
-        <div className="bg-[#B71C1C] px-6 py-3">
+      <div className="rounded-xl border bg-card shadow-md mb-8 overflow-hidden">
+        <div className="bg-primary px-6 py-3">
           <h2 className="text-lg font-semibold text-white">Daily Entry Form</h2>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Section A */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2 border-b pb-2">
-                <CookingPot className="h-4 w-4" /> Section A - Preparation
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Bone for Fry (kg)</Label>
-                  <Input type="number" value={boneFry} onChange={(e) => setBoneFry(e.target.value)} placeholder="0" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Boneless for Fry (kg)</Label>
-                  <Input type="number" value={bonelessFry} onChange={(e) => setBonelessFry(e.target.value)} placeholder="0" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Fry Output (kg)</Label>
-                  <Input type="number" value={fryOutput} onChange={(e) => setFryOutput(e.target.value)} placeholder="0" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Curry Output (kg)</Label>
-                  <Input type="number" value={curryOutput} onChange={(e) => setCurryOutput(e.target.value)} placeholder="0" />
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
             {/* Section B */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2 border-b pb-2">
-                <Beef className="h-4 w-4" /> Section B - Sales
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold text-muted-foreground uppercase flex items-center gap-3 border-b pb-3 mb-4">
+                <Beef className="h-6 w-6" /> Section B - Sales
               </h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Bone Sold (kg)</Label>
-                    <Input type="number" value={boneSold} onChange={(e) => setBoneSold(e.target.value)} placeholder="0" />
+              <div className="space-y-5">
+                {[
+                  { label: "Bone", val: boneSold, setter: setBoneSold, price: sellingCosts.bone, total: boneTotalAmt },
+                  { label: "Boneless", val: bonelessSold, setter: setBonelessSold, price: sellingCosts.boneless, total: bonelessTotalAmt },
+                  { label: "Fry", val: frySold, setter: setFrySold, price: sellingCosts.fry, total: fryTotalAmt },
+                  { label: "Curry", val: currySold, setter: setCurrySold, price: sellingCosts.curry, total: curryTotalAmt },
+                  { label: "Mixed", val: mixedSold, setter: setMixedSold, price: sellingCosts.mixed, total: mixedTotalAmt },
+                ].map((item) => (
+                  <div key={item.label} className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 bg-secondary/20 p-4 rounded-xl border">
+                    <div className="space-y-2">
+                      <Label className="text-lg font-semibold">{item.label} Sold (kg)</Label>
+                      <Input 
+                        type="number" 
+                        value={item.val} 
+                        onChange={(e) => item.setter(e.target.value)} 
+                        placeholder="0" 
+                        className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-lg font-semibold">Price (₹/kg)</Label>
+                      <Input readOnly className="h-[56px] text-xl bg-muted/30 font-bold border-2" value={item.price} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-lg font-semibold">Total (₹)</Label>
+                      <Input readOnly className="h-[56px] text-2xl bg-muted/50 font-black border-2 text-primary" value={item.total} />
+                    </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>Price (₹/kg)</Label>
-                    <Input type="number" value={bonePrice} onChange={(e) => setBonePrice(e.target.value)} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Total (₹)</Label>
-                    <Input readOnly className="bg-muted/50 font-medium" value={boneTotalAmt} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Boneless Sold (kg)</Label>
-                    <Input type="number" value={bonelessSold} onChange={(e) => setBonelessSold(e.target.value)} placeholder="0" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Price (₹/kg)</Label>
-                    <Input type="number" value={bonelessPrice} onChange={(e) => setBonelessPrice(e.target.value)} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Total (₹)</Label>
-                    <Input readOnly className="bg-muted/50 font-medium" value={bonelessTotalAmt} />
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
             {/* Section C */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2 border-b pb-2">
-                <Wallet className="h-4 w-4" /> Section C - Payment
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold text-muted-foreground uppercase flex items-center gap-3 border-b pb-3 mb-4">
+                <Wallet className="h-6 w-6" /> Section C - Payment
               </h3>
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label>Cash Received (₹)</Label>
-                  <Input type="number" value={cash} onChange={(e) => setCash(e.target.value)} placeholder="0" />
+              <div className="space-y-6">
+                
+                <div className="bg-card p-5 rounded-xl border-2 shadow-md flex justify-between items-center">
+                  <span className="font-extrabold text-muted-foreground uppercase text-lg tracking-wider">Bill Total:</span>
+                  <span className="text-3xl font-black text-foreground flex items-center"><IndianRupee className="w-6 h-6 mr-1" />{grandTotalAmt.toLocaleString("en-IN")}</span>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>PhonePe Received (₹)</Label>
-                  <Input type="number" value={phonePe} onChange={(e) => setPhonePe(e.target.value)} placeholder="0" />
+                
+                <div className="space-y-2 bg-secondary/20 p-5 rounded-xl border">
+                  <Label className="text-lg font-semibold block mb-2">Cash Received (₹)</Label>
+                  <Input 
+                    type="number" 
+                    value={cash} 
+                    onChange={(e) => setCash(e.target.value)} 
+                    placeholder="0" 
+                    className="h-[60px] text-3xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4"
+                  />
                 </div>
-                <div className="bg-secondary/30 p-3 rounded-md flex justify-between items-center px-4 border border-dashed">
-                  <span className="font-medium text-muted-foreground">Total:</span>
-                  <span className="text-lg font-bold text-primary">₹{paymentTotal.toLocaleString("en-IN")}</span>
+                
+                <div className="space-y-2 bg-secondary/20 p-5 rounded-xl border">
+                  <Label className="text-lg font-semibold block mb-2">PhonePe Received (₹)</Label>
+                  <Input 
+                    type="number" 
+                    value={phonePe} 
+                    onChange={(e) => setPhonePe(e.target.value)} 
+                    placeholder="0" 
+                    className="h-[60px] text-3xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 text-info"
+                  />
                 </div>
+                
+                <div className="bg-destructive/20 border-2 border-destructive text-destructive p-5 rounded-xl flex justify-between items-center shadow-sm block">
+                  <span className="font-extrabold uppercase tracking-widest text-lg">Discount Given:</span>
+                  <span className="text-3xl font-black flex items-center"><IndianRupee className="w-6 h-6 mr-1" />{discountGivenVal.toLocaleString("en-IN")}</span>
+                </div>
+                
               </div>
             </div>
           </div>
 
-          <div className="flex gap-4 mt-8 pt-4 border-t">
-            <Button onClick={handleSave} className="bg-[#B71C1C] hover:bg-[#8e1616] text-white px-8">
-              Save Entry
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6 mt-10 pt-6 border-t">
+            <Button onClick={handleSaveSales} className="flex-1 h-[60px] text-xl bg-primary hover:bg-primary/80 font-bold text-white shadow-md">
+              Save Sales Entry
             </Button>
             <Button 
               variant="outline" 
-              className="border-[#B71C1C] text-[#B71C1C] hover:bg-[#B71C1C] hover:text-white"
+              className="flex-1 h-[60px] text-xl border-2 border-primary text-primary hover:bg-primary hover:text-white font-bold shadow-sm"
               onClick={() => toast({ title: "Redirecting...", description: "Opening Billing System" })}
             >
               Generate Bill
@@ -228,56 +468,104 @@ export default function InventoryOut() {
       </div>
 
       {/* Sales Log Table */}
-      <div className="rounded-xl border bg-card shadow-sm">
-        <div className="px-6 py-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Daily Sales Log</h2>
-          <Button variant="ghost" size="sm" className="text-xs">Export Records</Button>
-        </div>
-        <DataTable
-          columns={[
-            { header: "Date", accessor: "date" },
-            { header: "Bone (kg)", accessor: (r: OutRecord) => `${r.boneSold}` },
-            { header: "Boneless (kg)", accessor: (r: OutRecord) => `${r.bonelessSold}` },
-            { header: "Fry (kg)", accessor: (r: OutRecord) => `${r.fry}` },
-            { header: "Curry (kg)", accessor: (r: OutRecord) => `${r.curry}` },
-            { header: "Cash (₹)", accessor: (r: OutRecord) => `₹${r.cash.toLocaleString("en-IN")}` },
-            { header: "PhonePe (₹)", accessor: (r: OutRecord) => `₹${r.phonePe.toLocaleString("en-IN")}` },
-            { header: "Total (₹)", accessor: (r: OutRecord) => `₹${r.total.toLocaleString("en-IN")}` },
-            { 
-              header: "Bill", 
-              accessor: (r: OutRecord) => (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-7 px-2 text-[10px] uppercase font-bold border-[#B71C1C] text-[#B71C1C] hover:bg-[#B71C1C] hover:text-white"
-                  onClick={() => setSelectedBill(r)}
-                >
-                  <Receipt className="h-3 w-3 mr-1" /> {r.billId}
-                </Button>
-              )
-            },
-            { 
-              header: "Actions", 
-              accessor: (r: OutRecord) => (
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Pencil className="h-3.5 w-3.5" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(r.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+      <div className="rounded-xl border bg-card shadow-md mb-8">
+        <div className="px-6 py-4 border-b flex justify-between items-center bg-card border-zinc-200">
+          <h2 className="text-lg font-semibold text-zinc-800">Daily Sales Log</h2>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs h-8">
+                <DownloadCloud className="w-3.5 h-3.5 mr-2" /> Export Records
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Export Sales Records</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-1.5">
+                  <Label>Format</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant={exportFormat === "CSV" ? "default" : "outline"} className={exportFormat === "CSV" ? "bg-primary hover:bg-primary/80" : ""} onClick={() => setExportFormat("CSV")}>CSV (Excel)</Button>
+                    <Button variant={exportFormat === "PDF" ? "default" : "outline"} className={exportFormat === "PDF" ? "bg-primary hover:bg-primary/80" : ""} onClick={() => setExportFormat("PDF")}>PDF Document</Button>
+                  </div>
                 </div>
-              )
-            },
-          ]}
-          data={records}
-          pageSize={10}
-        />
+                <div className="space-y-1.5 mt-2">
+                  <Label>Date Range</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant={exportRange === "Daily" ? "default" : "outline"} className={exportRange === "Daily" ? "bg-primary hover:bg-primary/80" : ""} onClick={() => setExportRange("Daily")}>Today</Button>
+                    <Button variant={exportRange === "Weekly" ? "default" : "outline"} className={exportRange === "Weekly" ? "bg-primary hover:bg-primary/80" : ""} onClick={() => setExportRange("Weekly")}>This Week</Button>
+                    <Button variant={exportRange === "Monthly" ? "default" : "outline"} className={exportRange === "Monthly" ? "bg-primary hover:bg-primary/80" : ""} onClick={() => setExportRange("Monthly")}>This Month</Button>
+                    <Button variant={exportRange === "Custom" ? "default" : "outline"} className={exportRange === "Custom" ? "bg-primary hover:bg-primary/80" : ""} onClick={() => setExportRange("Custom")}>Custom Margin</Button>
+                  </div>
+                </div>
+                {exportRange === "Custom" && (
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <div className="space-y-1.5">
+                      <Label>Start Date</Label>
+                      <Input type="date" value={exportStart} onChange={(e) => setExportStart(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>End Date</Label>
+                      <Input type="date" value={exportEnd} onChange={(e) => setExportEnd(e.target.value)} />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button onClick={handleExport} className="bg-primary hover:bg-primary/80">Download {exportFormat}</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <div className="p-2 border-b">
+          <DataTable
+            columns={[
+              { header: "Date", accessor: "date" },
+              { header: "Bone (kg)", accessor: (r: OutRecord) => `${r.boneSold}` },
+              { header: "Boneless (kg)", accessor: (r: OutRecord) => `${r.bonelessSold}` },
+              { header: "Fry Sale (kg)", accessor: (r: OutRecord) => `${r.frySold || 0}` },
+              { header: "Curry Sale (kg)", accessor: (r: OutRecord) => `${r.currySold || 0}` },
+              { header: "Mixed Sale (kg)", accessor: (r: OutRecord) => `${r.mixedSold || 0}` },
+              { header: "Total (₹)", accessor: (r: OutRecord) => `₹${r.total.toLocaleString("en-IN")}` },
+              { header: "Discount (₹)", accessor: (r: OutRecord) => `₹${(r.discountGiven || 0).toLocaleString("en-IN")}` },
+              { header: "Cash (₹)", accessor: (r: OutRecord) => `₹${r.cash.toLocaleString("en-IN")}` },
+              { header: "PhonePe (₹)", accessor: (r: OutRecord) => `₹${r.phonePe.toLocaleString("en-IN")}` },
+              { 
+                header: "Bill", 
+                accessor: (r: OutRecord) => (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 px-2 text-[10px] uppercase font-bold border-primary text-primary hover:bg-primary hover:text-white"
+                    onClick={() => setSelectedBill(r)}
+                  >
+                    <Receipt className="h-3 w-3 mr-1" /> {r.billId}
+                  </Button>
+                )
+              },
+              { 
+                header: "Actions", 
+                accessor: (r: OutRecord) => (
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(r.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  </div>
+                )
+              },
+            ]}
+            data={filteredRecords.filter((r) => !String(r.billId).startsWith("PREP"))}
+            pageSize={10}
+          />
+        </div>
       </div>
 
       {/* Bill Preview Modal */}
       <Dialog open={!!selectedBill} onOpenChange={(open) => !open && setSelectedBill(null)}>
-        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden gap-0">
-          <div className="bg-[#B71C1C] p-6 text-white flex justify-between items-start">
+        <DialogContent className="w-[95%] sm:max-w-[450px] p-0 overflow-hidden gap-0">
+          <div className="bg-primary p-6 text-white flex justify-between items-start">
             <div className="flex items-center gap-3">
-              <div className="bg-white p-2 rounded-lg">
-                <Ham className="h-8 w-8 text-[#B71C1C]" />
+              <div className="bg-card p-2 rounded-lg">
+                <Ham className="h-8 w-8 text-primary" />
               </div>
               <div>
                 <h2 className="text-2xl font-black uppercase tracking-tighter">Pinaka Meat Shop</h2>
@@ -290,7 +578,7 @@ export default function InventoryOut() {
             </div>
           </div>
           
-          <div className="p-8 bg-white">
+          <div className="p-8 bg-card">
             <div className="flex justify-between mb-8 text-sm">
               <div className="text-muted-foreground">
                 <p className="font-bold text-foreground mb-1">Bill To:</p>
@@ -299,7 +587,7 @@ export default function InventoryOut() {
               </div>
               <div className="text-right text-muted-foreground">
                 <p className="font-bold text-foreground mb-1">Payment Status:</p>
-                <p className="text-green-600 font-bold uppercase">Paid via {selectedBill && (selectedBill.cash > 0 && selectedBill.phonePe > 0 ? "Mixed" : selectedBill.cash > 0 ? "Cash" : "PhonePe")}</p>
+                <p className="text-success font-bold uppercase">Paid via {selectedBill && (selectedBill.cash > 0 && selectedBill.phonePe > 0 ? "Mixed" : selectedBill.cash > 0 ? "Cash" : "PhonePe")}</p>
               </div>
             </div>
 
@@ -313,27 +601,37 @@ export default function InventoryOut() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {selectedBill && selectedBill.boneSold > 0 && (
-                  <tr>
-                    <td className="py-3">Mutton Bone</td>
-                    <td className="text-center py-3">{selectedBill.boneSold} kg</td>
-                    <td className="text-center py-3">₹200</td>
-                    <td className="text-right py-3 font-medium">₹{(selectedBill.boneSold * 200).toLocaleString("en-IN")}</td>
-                  </tr>
-                )}
-                {selectedBill && selectedBill.bonelessSold > 0 && (
-                  <tr>
-                    <td className="py-3">Mutton Boneless</td>
-                    <td className="text-center py-3">{selectedBill.bonelessSold} kg</td>
-                    <td className="text-center py-3">₹250</td>
-                    <td className="text-right py-3 font-medium">₹{(selectedBill.bonelessSold * 250).toLocaleString("en-IN")}</td>
-                  </tr>
-                )}
+                {[
+                  { name: "Mutton Bone", sold: selectedBill?.boneSold, price: sellingCosts.bone },
+                  { name: "Mutton Boneless", sold: selectedBill?.bonelessSold, price: sellingCosts.boneless },
+                  { name: "Mutton Fry", sold: selectedBill?.frySold, price: sellingCosts.fry },
+                  { name: "Mutton Curry", sold: selectedBill?.currySold, price: sellingCosts.curry },
+                  { name: "Mutton Mixed", sold: selectedBill?.mixedSold, price: sellingCosts.mixed },
+                ].map((item) => (
+                  item.sold && item.sold > 0 ? (
+                    <tr key={item.name}>
+                      <td className="py-3">{item.name}</td>
+                      <td className="text-center py-3">{item.sold} kg</td>
+                      <td className="text-center py-3">₹{item.price}</td>
+                      <td className="text-right py-3 font-medium">₹{(item.sold * item.price).toLocaleString("en-IN")}</td>
+                    </tr>
+                  ) : null
+                ))}
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-primary/10">
                   <td colSpan={3} className="pt-4 pb-1 text-right font-bold uppercase text-[10px] tracking-wider text-muted-foreground">Subtotal</td>
-                  <td className="pt-4 pb-1 text-right font-bold text-lg text-[#B71C1C]">₹{selectedBill?.total.toLocaleString("en-IN")}</td>
+                  <td className="pt-4 pb-1 text-right font-bold text-lg text-foreground">₹{selectedBill?.total.toLocaleString("en-IN")}</td>
+                </tr>
+                {selectedBill && selectedBill.discountGiven !== undefined && selectedBill.discountGiven > 0 && (
+                  <tr>
+                    <td colSpan={3} className="pb-1 text-right font-bold uppercase text-[10px] tracking-wider text-destructive">Discount Given</td>
+                    <td className="pb-1 text-right font-bold text-md text-destructive">-₹{selectedBill.discountGiven.toLocaleString("en-IN")}</td>
+                  </tr>
+                )}
+                <tr className="border-t border-dashed">
+                  <td colSpan={3} className="pt-2 pb-1 text-right font-bold uppercase text-[12px] tracking-wider text-muted-foreground">Amount Paid</td>
+                  <td className="pt-2 pb-1 text-right font-black text-xl text-primary">₹{((selectedBill?.cash || 0) + (selectedBill?.phonePe || 0)).toLocaleString("en-IN")}</td>
                 </tr>
                 <tr>
                   <td colSpan={3} className="pb-4 text-right text-[10px] text-muted-foreground flex items-center justify-end gap-2">
@@ -355,7 +653,7 @@ export default function InventoryOut() {
             <p className="text-[10px] text-muted-foreground flex-1 italic">Thank you for shopping with Pinaka Meat Shop!</p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setSelectedBill(null)} className="h-8">Close</Button>
-              <Button size="sm" className="bg-[#B71C1C] hover:bg-[#8e1616] h-8">
+              <Button size="sm" className="bg-primary hover:bg-primary/80 h-8">
                 <Download className="h-3 w-3 mr-2" /> Download PDF
               </Button>
             </div>

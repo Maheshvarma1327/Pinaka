@@ -9,7 +9,11 @@ export default {
       center: true,
       padding: "1rem",
       screens: {
-        "2xl": "1400px",
+        "sm": "100%",
+        "md": "100%",
+        "lg": "100%",
+        "xl": "100%",
+        "2xl": "100%",
       },
     },
     extend: {
@@ -61,6 +65,10 @@ export default {
         warning: {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
+        },
+        insights: {
+          DEFAULT: "hsl(var(--insights))",
+          foreground: "hsl(var(--insights-foreground))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

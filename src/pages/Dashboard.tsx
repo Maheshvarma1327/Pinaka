@@ -32,7 +32,7 @@ export default function Dashboard() {
       <Breadcrumb items={[{ label: "Dashboard" }]} />
 
       {/* Welcome card */}
-      <div className="rounded-lg border bg-card p-6 shadow-sm mb-6 flex items-center justify-between">
+      <div className="rounded-lg border bg-card p-6 shadow-md mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Welcome, Pinaka</h1>
           <p className="text-muted-foreground mt-1">{today}</p>
@@ -55,7 +55,7 @@ export default function Dashboard() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-lg border bg-card p-5 shadow-sm">
+        <div className="rounded-lg border bg-card p-5 shadow-md">
           <h3 className="font-semibold mb-4">Daily Sales This Week</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={dailySales}>
@@ -69,7 +69,7 @@ export default function Dashboard() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="rounded-lg border bg-card p-5 shadow-sm">
+        <div className="rounded-lg border bg-card p-5 shadow-md">
           <h3 className="font-semibold mb-4">Stock Movement (30 days)</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={stockMovement}>

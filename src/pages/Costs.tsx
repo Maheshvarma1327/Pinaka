@@ -168,7 +168,7 @@ export default function Costs() {
         <StatCard 
           title="Total Costs This Month" 
           value={`₹${totalCostsMonth.toLocaleString("en-IN")}`} 
-          icon={<DollarSign className="h-5 w-5 text-[#B71C1C]" />} 
+          icon={<DollarSign className="h-5 w-5 text-primary" />} 
           className="border-l-4 border-l-[#B71C1C]"
         />
         <StatCard 
@@ -180,7 +180,7 @@ export default function Costs() {
         <StatCard 
           title="Revenue This Month" 
           value={`₹${revenueMonth.toLocaleString("en-IN")}`} 
-          icon={<TrendingUp className="h-5 w-5 text-green-600" />} 
+          icon={<TrendingUp className="h-5 w-5 text-success" />} 
           className="border-l-4 border-l-green-600"
         />
         <StatCard 
@@ -201,7 +201,7 @@ export default function Costs() {
         </TabsList>
 
         <TabsContent value="daily" className="space-y-6">
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <div className="rounded-lg border bg-card p-6 shadow-md">
             <h2 className="text-lg font-semibold mb-4">Add Daily Cost</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               <div><Label>Date</Label><Input type="date" value={dcDate} onChange={e => setDcDate(e.target.value)} /></div>
@@ -215,11 +215,11 @@ export default function Costs() {
               <div className="text-sm border px-3 py-1.5 rounded-md bg-secondary/50 font-medium">
                 Total: ₹{((Number(dcLabour) || 0) + (Number(dcTransport) || 0) + (Number(dcIce) || 0) + (Number(dcMisc) || 0)).toLocaleString("en-IN")}
               </div>
-              <Button onClick={handleSaveDailyCost} className="bg-[#B71C1C] hover:bg-[#8e1616] text-white">Save Cost</Button>
+              <Button onClick={handleSaveDailyCost} className="bg-primary hover:bg-primary/80 text-white">Save Cost</Button>
             </div>
           </div>
 
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <div className="rounded-lg border bg-card p-6 shadow-md">
             <h2 className="text-lg font-semibold mb-4">Daily Costs Log</h2>
             <DataTable
               columns={[
@@ -243,7 +243,7 @@ export default function Costs() {
         </TabsContent>
 
         <TabsContent value="monthly" className="space-y-6">
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <div className="rounded-lg border bg-card p-6 shadow-md">
             <h2 className="text-lg font-semibold mb-4">Add Monthly Bill</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div><Label>Month</Label><Input type="month" value={mbMonth} onChange={e => setMbMonth(e.target.value)} /></div>
@@ -256,11 +256,11 @@ export default function Costs() {
               <div className="text-sm border px-3 py-1.5 rounded-md bg-secondary/50 font-medium">
                 Total: ₹{((Number(mbElectricity) || 0) + (Number(mbRent) || 0) + (Number(mbWater) || 0) + (Number(mbOther) || 0)).toLocaleString("en-IN")}
               </div>
-              <Button onClick={handleSaveMonthlyBill} className="bg-[#B71C1C] hover:bg-[#8e1616] text-white">Save Bills</Button>
+              <Button onClick={handleSaveMonthlyBill} className="bg-primary hover:bg-primary/80 text-white">Save Bills</Button>
             </div>
           </div>
 
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <div className="rounded-lg border bg-card p-6 shadow-md">
             <h2 className="text-lg font-semibold mb-4">Monthly Bills Log</h2>
             <DataTable
               columns={[
@@ -283,7 +283,7 @@ export default function Costs() {
         </TabsContent>
 
         <TabsContent value="slaughter" className="space-y-6">
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <div className="rounded-lg border bg-card p-6 shadow-md">
             <h2 className="text-lg font-semibold mb-4">Add Slaughter Cost</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div><Label>Date</Label><Input type="date" value={scDate} onChange={e => setScDate(e.target.value)} /></div>
@@ -296,11 +296,11 @@ export default function Costs() {
               <div className="text-sm border px-3 py-1.5 rounded-md bg-secondary/50 font-medium">
                 Total: ₹{((Number(scSlaughterhouse) || 0) + (Number(scPackaging) || 0) + (Number(scOther) || 0)).toLocaleString("en-IN")}
               </div>
-              <Button onClick={handleSaveSlaughterCost} className="bg-[#B71C1C] hover:bg-[#8e1616] text-white">Save Cost</Button>
+              <Button onClick={handleSaveSlaughterCost} className="bg-primary hover:bg-primary/80 text-white">Save Cost</Button>
             </div>
           </div>
 
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <div className="rounded-lg border bg-card p-6 shadow-md">
             <h2 className="text-lg font-semibold mb-4">Slaughter Costs Log</h2>
             <DataTable
               columns={[
@@ -323,7 +323,7 @@ export default function Costs() {
         </TabsContent>
 
         <TabsContent value="summary" className="space-y-6">
-          <div className="rounded-lg border bg-card p-6 shadow-sm flex items-center justify-between">
+          <div className="rounded-lg border bg-card p-6 shadow-md flex items-center justify-between">
             <h2 className="text-lg font-semibold">Costs vs Revenue Summary</h2>
             <div className="flex items-center gap-2">
               <Label>Filter:</Label>
@@ -332,7 +332,7 @@ export default function Costs() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-lg border bg-card p-6 shadow-sm">
+            <div className="rounded-lg border bg-card p-6 shadow-md">
               <h3 className="text-md font-semibold mb-4">Full Breakdown</h3>
               <table className="w-full text-sm">
                 <thead>
@@ -348,7 +348,7 @@ export default function Costs() {
                     <td className="px-4 py-3">Daily Costs</td>
                     <td className="px-4 py-3">₹43,000</td>
                     <td className="px-4 py-3">₹39,500</td>
-                    <td className="px-4 py-3 text-red-500 flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> +8.8%</td>
+                    <td className="px-4 py-3 text-destructive flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> +8.8%</td>
                   </tr>
                   <tr className="border-b">
                     <td className="px-4 py-3">Monthly Bills</td>
@@ -360,31 +360,31 @@ export default function Costs() {
                     <td className="px-4 py-3">Slaughter Costs</td>
                     <td className="px-4 py-3">₹11,500</td>
                     <td className="px-4 py-3">₹10,800</td>
-                    <td className="px-4 py-3 text-red-500 flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> +6.4%</td>
+                    <td className="px-4 py-3 text-destructive flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> +6.4%</td>
                   </tr>
                   <tr className="border-b-2 font-bold bg-secondary/10">
                     <td className="px-4 py-3">Total Costs</td>
                     <td className="px-4 py-3">₹73,850</td>
                     <td className="px-4 py-3">₹70,400</td>
-                    <td className="px-4 py-3 text-red-500">—</td>
+                    <td className="px-4 py-3 text-destructive">—</td>
                   </tr>
                   <tr className="border-b font-bold bg-secondary/10">
                     <td className="px-4 py-3">Total Revenue</td>
-                    <td className="px-4 py-3 text-green-600">₹160,000</td>
-                    <td className="px-4 py-3 text-green-600">₹148,000</td>
+                    <td className="px-4 py-3 text-success">₹160,000</td>
+                    <td className="px-4 py-3 text-success">₹148,000</td>
                     <td className="px-4 py-3 text-green-500">—</td>
                   </tr>
                   <tr className="border-t-[3px] font-black text-base bg-secondary/20 bg-blue-50/50">
                     <td className="px-4 py-4 text-blue-800">NET PROFIT</td>
                     <td className="px-4 py-4 text-blue-800">₹86,150</td>
                     <td className="px-4 py-4 text-blue-800">₹77,600</td>
-                    <td className="px-4 py-4 text-green-600 flex items-center gap-1"><TrendingUp className="h-4 w-4" /> +11.0%</td>
+                    <td className="px-4 py-4 text-success flex items-center gap-1"><TrendingUp className="h-4 w-4" /> +11.0%</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <div className="rounded-lg border bg-card p-6 shadow-sm flex flex-col">
+            <div className="rounded-lg border bg-card p-6 shadow-md flex flex-col">
               <h3 className="text-md font-semibold mb-6">Revenue vs Total Costs (6 Months)</h3>
               <div className="flex-1 min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">

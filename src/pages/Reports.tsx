@@ -61,7 +61,7 @@ export default function Reports() {
       <h1 className="text-2xl font-bold mb-6">Reports</h1>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3 mb-6 rounded-lg border bg-card p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 mb-6 rounded-lg border bg-card p-4 shadow-md">
         <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" value={month} onChange={(e) => setMonth(e.target.value)}>
           {months.map(m => <option key={m}>{m}</option>)}
         </select>
@@ -83,7 +83,7 @@ export default function Reports() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="rounded-lg border bg-card p-5 shadow-sm">
+        <div className="rounded-lg border bg-card p-5 shadow-md">
           <h3 className="font-semibold mb-4">Monthly Revenue</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyRevenue}>
@@ -95,7 +95,7 @@ export default function Reports() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="rounded-lg border bg-card p-5 shadow-sm">
+        <div className="rounded-lg border bg-card p-5 shadow-md">
           <h3 className="font-semibold mb-4">Stock In vs Out</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={stockInOut}>
@@ -110,7 +110,7 @@ export default function Reports() {
           </ResponsiveContainer>
         </div>
       </div>
-      <div className="rounded-lg border bg-card p-5 shadow-sm mb-6">
+      <div className="rounded-lg border bg-card p-5 shadow-md mb-6">
         <h3 className="font-semibold mb-4">Cash vs PhonePe Split</h3>
         <div className="flex justify-center">
           <ResponsiveContainer width="100%" height={300}>
@@ -126,7 +126,7 @@ export default function Reports() {
       </div>
 
       {/* Tables */}
-      <div className="rounded-lg border bg-card p-6 shadow-sm mb-6">
+      <div className="rounded-lg border bg-card p-6 shadow-md mb-6">
         <h2 className="text-lg font-semibold mb-4">EOD Sales Summary</h2>
         <DataTable
           columns={[
@@ -144,7 +144,7 @@ export default function Reports() {
         />
       </div>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm">
+      <div className="rounded-lg border bg-card p-6 shadow-md">
         <h2 className="text-lg font-semibold mb-4">Monthly Sales Breakdown</h2>
         <DataTable
           columns={[
