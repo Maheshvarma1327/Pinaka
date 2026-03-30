@@ -10,10 +10,8 @@ import {
   Store, 
   CircleDollarSign, 
   TrendingUp, 
-  PiggyBank,
   Moon,
-  Sun,
-  Monitor
+  Sun
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "./ThemeProvider";
@@ -40,15 +38,15 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b shadow-none transition-all duration-300" style={{backgroundColor: 'var(--navbar-bg)', borderColor: 'var(--navbar-border)'}}>
-      <div className="container flex items-center justify-between h-[76px] px-4 lg:px-6 max-w-[1600px] mx-auto">
+      <div className="container flex items-center justify-between min-h-[80px] sm:min-h-[96px] py-1 px-4 lg:px-6 max-w-[1600px] mx-auto">
         
         {/* Left Branding */}
-        <Link to="/dashboard" className="flex items-center gap-3 flex-shrink-0 group">
-          <div className="relative w-[45px] h-[45px] flex items-center justify-center flex-shrink-0 transform transition-transform group-hover:scale-105">
-            <img src="/logo.png" alt="Pinaka Logo" className="w-full h-full object-contain" />
+        <Link to="/dashboard" className="flex items-center gap-2 sm:gap-4 flex-shrink-0 group">
+          <div className="relative w-[75px] h-[75px] sm:w-[95px] sm:h-[95px] flex items-center justify-center flex-shrink-0 transform transition-transform group-hover:scale-105">
+            <img src="/logo.png" alt="Pinaka Logo" className="w-[110%] h-[110%] max-w-none object-contain" />
           </div>
-          <div className="flex flex-col hidden sm:flex justify-center ml-1">
-            <span className="text-[28px] font-black leading-none tracking-tighter bg-gradient-to-br from-primary via-[#FF8C3A] to-[#FF5500] bg-clip-text text-transparent drop-shadow-sm pb-1">PINAKA</span>
+          <div className="flex flex-col justify-center ml-0 sm:ml-1">
+            <span className="text-[26px] sm:text-[36px] font-black leading-none tracking-tighter bg-gradient-to-br from-primary via-[#FF8C3A] to-[#FF5500] bg-clip-text text-transparent drop-shadow-sm pb-1">PINAKA</span>
           </div>
         </Link>
 
@@ -97,16 +95,6 @@ export default function Navbar() {
           {/* Theme Toggle */}
           <div className="hidden sm:flex bg-muted p-1 rounded-sm items-center border border-border">
             <button
-              onClick={() => setTheme("theme-default")}
-              className={cn(
-                "p-1.5 rounded-sm transition-colors flex items-center justify-center",
-                theme === "theme-default" ? "bg-card shadow-none text-primary" : "text-muted-foreground hover:text-foreground"
-              )}
-              title="Default Theme"
-            >
-              <Monitor className="w-4 h-4" />
-            </button>
-            <button
               onClick={() => setTheme("theme-light")}
               className={cn(
                 "p-1.5 rounded-sm transition-colors flex items-center justify-center",
@@ -152,16 +140,6 @@ export default function Navbar() {
       {mobileOpen && (
         <nav className="md:hidden border-t border-border bg-card px-4 pb-4 pt-2 space-y-1 shadow-none">
           <div className="flex bg-muted p-1 rounded-sm items-center border border-border mb-4 justify-between">
-            <button
-              onClick={() => setTheme("theme-default")}
-              className={cn(
-                "flex-1 p-2 rounded-sm transition-colors flex items-center justify-center gap-2",
-                theme === "theme-default" ? "bg-card shadow-none text-primary" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Monitor className="w-4 h-4" />
-              <span className="text-xs font-semibold">Default</span>
-            </button>
             <button
               onClick={() => setTheme("theme-light")}
               className={cn(
