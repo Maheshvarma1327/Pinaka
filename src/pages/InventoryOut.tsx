@@ -73,11 +73,27 @@ export default function InventoryOut({
 }) {
   const params = useParams();
   const id = shopIdFilter || params.id;
-  const shopName = id === "shop1" ? "Palipattu Shop" : id === "shop2" ? "Tirupati Shop" : "Pinaka Default Shop";
-  const shopLocation = id === "shop1" ? "Palipattu" : id === "shop2" ? "Tirupati" : "Main Branch";
+  const shops = (() => {
+    try {
+      const d = localStorage.getItem("pinaka_shops_list");
+      return d ? JSON.parse(d) : [];
+    } catch {
+      return [];
+    }
+  })();
+  const currentShop = shops.find((s: any) => s.id === id);
+  const shopName = currentShop?.name || "Pinaka Default Shop";
+  const shopLocation = currentShop?.location || "Main Branch";
 
   const { toast } = useToast();
-  const [records, setRecords] = useState<OutRecord[]>(initialRecords);
+  const [records, setRecords] = useState<OutRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem(`pinaka_shop_inventory_out_${id}`);
+      return saved ? JSON.parse(saved) : initialRecords;
+    } catch {
+      return initialRecords;
+    }
+  });
   const [selectedBill, setSelectedBill] = useState<OutRecord | null>(null);
 
   const defaultCosts = { fry: 280, curry: 250, bone: 200, boneless: 400, mixed: 200 };
@@ -206,15 +222,19 @@ export default function InventoryOut({
       discountGiven: discountGivenVal,
       billId: `PK-${String(records.length + 1).padStart(3, "0")}`,
     };
-    setRecords([newRecord, ...records]);
+    const newRecords = [newRecord, ...records];
+    setRecords(newRecords);
+    localStorage.setItem(`pinaka_shop_inventory_out_${id}`, JSON.stringify(newRecords));
     toast({ title: "Success", description: "Daily sales recorded successfully." });
     
     setBoneSold(""); setBonelessSold(""); setFrySold(""); setCurrySold(""); setMixedSold("");
     setCash(""); setPhonePe("");
   };
 
-  const handleDelete = (id: string) => {
-    setRecords(records.filter(r => r.id !== id));
+  const handleDelete = (deleteId: string) => {
+    const newRecords = records.filter(r => r.id !== deleteId);
+    setRecords(newRecords);
+    localStorage.setItem(`pinaka_shop_inventory_out_${id}`, JSON.stringify(newRecords));
     toast({ title: "Deleted", description: "Record removed" });
   };
 
@@ -331,19 +351,19 @@ export default function InventoryOut({
          <div>
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Total Available Stock & Preparation</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <StatCard title="Overall Total" value={`${totalStock} kg`} color={totalStock < 0 ? "destructive" : "info"} icon={<Package className="h-4 w-4" />} />} />
-              <StatCard title="Bone Available" value={`${availBone} kg`} color={availBone < 0 ? "destructive" : "success"} icon={<Bone className="h-4 w-4" />} />} />
-              <StatCard title="Boneless Avail." value={`${availBoneless} kg`} color={availBoneless < 0 ? "destructive" : "success"} icon={<Beef className="h-4 w-4" />} />} />
-              <StatCard title="Mixed Avail." value={`${availMixed} kg`} color={availMixed < 0 ? "destructive" : "success"} icon={<Package className="h-4 w-4" />} />} />
-              <StatCard title="Fry Prep." value={`${availFry} kg`} color="info" icon={<Beef className="h-4 w-4" />} />} />
-              <StatCard title="Curry Prep." value={`${availCurry} kg`} color="info" icon={<CookingPot className="h-4 w-4" />} />} />
+              <StatCard title="Overall Total" value={`${totalStock} kg`} color={totalStock < 0 ? "destructive" : "info"} icon={<Package className="h-4 w-4" />} />
+              <StatCard title="Bone Available" value={`${availBone} kg`} color={availBone < 0 ? "destructive" : "success"} icon={<Bone className="h-4 w-4" />} />
+              <StatCard title="Boneless Avail." value={`${availBoneless} kg`} color={availBoneless < 0 ? "destructive" : "success"} icon={<Beef className="h-4 w-4" />} />
+              <StatCard title="Mixed Avail." value={`${availMixed} kg`} color={availMixed < 0 ? "destructive" : "success"} icon={<Package className="h-4 w-4" />} />
+              <StatCard title="Fry Prep." value={`${availFry} kg`} color="info" icon={<Beef className="h-4 w-4" />} />
+              <StatCard title="Curry Prep." value={`${availCurry} kg`} color="info" icon={<CookingPot className="h-4 w-4" />} />
             </div>
          </div>
 
          {/* ROW 2: TOTAL STOCK SOLD */}
          <div>
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Total Stock Sold</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               <StatCard title="Overall Total Sold" className="bg-card border-dashed" value={`${totalBoneSold + totalBonelessSold + totalMixedSold + totalFrySold + totalCurrySold} kg`} icon={<Package className="h-4 w-4 text-muted-foreground" />} />
               <StatCard title="Bone Sold" value={`${totalBoneSold} kg`} icon={<Bone className="h-4 w-4 text-muted-foreground" />} />
               <StatCard title="Boneless Sold" value={`${totalBonelessSold} kg`} icon={<Beef className="h-4 w-4 text-muted-foreground" />} />
@@ -357,17 +377,19 @@ export default function InventoryOut({
          <div>
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Total Sales Amount</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard title="Cash Received" value={`₹${totalCash.toLocaleString("en-IN")}`} color="success" icon={<Wallet className="h-4 w-4" />} />} />
-              <StatCard title="PhonePe Received" value={`₹${totalPhonePe.toLocaleString("en-IN")}`} color="info" icon={<Smartphone className="h-4 w-4" />} />} />
-              <StatCard title="Discount Given" value={`₹${discountedAmount.toLocaleString("en-IN")}`} color="insights" icon={<TrendingUp className="h-4 w-4" />} />} />
+              <StatCard title="Total Amount Received (₹)" value={`₹${(totalCash + totalPhonePe).toLocaleString("en-IN")}`} color="success" icon={<IndianRupee className="h-4 w-4" />} />
+              <StatCard title="Cash Received" value={`₹${totalCash.toLocaleString("en-IN")}`} color="success" icon={<Wallet className="h-4 w-4" />} />
+              <StatCard title="PhonePe Received" value={`₹${totalPhonePe.toLocaleString("en-IN")}`} color="info" icon={<Smartphone className="h-4 w-4" />} />
+              <StatCard title="Discount Given" value={`₹${discountedAmount.toLocaleString("en-IN")}`} color="insights" icon={<TrendingUp className="h-4 w-4" />} />
             </div>
          </div>
       </div>
 
       {/* Entry Form */}
-      <div className="rounded-xl border bg-card shadow-md mb-8 overflow-hidden">
-        <div className="bg-primary px-6 py-3">
-          <h2 className="text-lg font-semibold text-white">Daily Entry Form</h2>
+      <div className="rounded-sm border bg-card shadow-none mb-8 overflow-hidden hover:bg-[var(--table-row-2)] transition-colors">
+        <div className="px-6 py-4 border-b border-border flex items-center gap-3" style={{backgroundColor: 'var(--table-header)'}}>
+          <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+          <h2 className="text-xl font-black text-foreground tracking-tight uppercase">Daily Entry Form</h2>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -385,24 +407,24 @@ export default function InventoryOut({
                   { label: "Curry", val: currySold, setter: setCurrySold, price: sellingCosts.curry, total: curryTotalAmt },
                   { label: "Mixed", val: mixedSold, setter: setMixedSold, price: sellingCosts.mixed, total: mixedTotalAmt },
                 ].map((item) => (
-                  <div key={item.label} className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 bg-secondary/20 p-4 rounded-xl border">
+                  <div key={item.label} className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 p-4 rounded-sm border border-border" style={{backgroundColor: 'var(--table-row-2)'}}>
                     <div className="space-y-2">
-                      <Label className="text-lg font-semibold">{item.label} Sold (kg)</Label>
+                       <Label className="text-lg font-semibold text-muted-foreground">{item.label} Sold (kg)</Label>
                       <Input 
                         type="number" 
                         value={item.val} 
                         onChange={(e) => item.setter(e.target.value)} 
                         placeholder="0" 
-                        className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-sm"
+                        className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-none bg-background"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-lg font-semibold">Price (₹/kg)</Label>
-                      <Input readOnly className="h-[56px] text-xl bg-muted/30 font-bold border-2" value={item.price} />
+                      <Label className="text-lg font-semibold text-muted-foreground">Price (₹/kg)</Label>
+                      <Input readOnly className="h-[56px] text-xl bg-muted/30 font-bold border-2 text-foreground" value={item.price} />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-lg font-semibold">Total (₹)</Label>
-                      <Input readOnly className="h-[56px] text-2xl bg-muted/50 font-black border-2 text-primary" value={item.total} />
+                      <Label className="text-lg font-semibold text-muted-foreground">Total (₹)</Label>
+                      <Input readOnly className="h-[56px] text-2xl font-black border-2 border-info/30 text-info" value={item.total} style={{backgroundColor: 'var(--primary-light-bg)'}} />
                     </div>
                   </div>
                 ))}
@@ -416,34 +438,35 @@ export default function InventoryOut({
               </h3>
               <div className="space-y-6">
                 
-                <div className="bg-card p-5 rounded-xl border-2 shadow-md flex justify-between items-center">
-                  <span className="font-extrabold text-muted-foreground uppercase text-lg tracking-wider">Bill Total:</span>
-                  <span className="text-3xl font-black text-foreground flex items-center"><IndianRupee className="w-6 h-6 mr-1" />{grandTotalAmt.toLocaleString("en-IN")}</span>
+                <div className="p-6 rounded-sm border-2 border-info/20 shadow-none flex justify-between items-center relative overflow-hidden" style={{backgroundColor: 'var(--primary-light-bg)'}}>
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-info" />
+                  <span className="font-bold text-info/80 justify-start pl-2 uppercase tracking-widest text-sm">Bill Total</span>
+                  <span className="text-4xl font-black text-info flex items-center tracking-tight"><IndianRupee className="w-8 h-8 mr-1" />{grandTotalAmt.toLocaleString("en-IN")}</span>
                 </div>
                 
-                <div className="space-y-2 bg-secondary/20 p-5 rounded-xl border">
+                <div className="space-y-2 p-5 rounded-sm border border-border" style={{backgroundColor: 'var(--table-row-2)'}}>
                   <Label className="text-lg font-semibold block mb-2">Cash Received (₹)</Label>
                   <Input 
                     type="number" 
                     value={cash} 
                     onChange={(e) => setCash(e.target.value)} 
                     placeholder="0" 
-                    className="h-[60px] text-3xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4"
+                    className="h-[60px] text-3xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 bg-background"
                   />
                 </div>
                 
-                <div className="space-y-2 bg-secondary/20 p-5 rounded-xl border">
+                <div className="space-y-2 p-5 rounded-sm border border-border" style={{backgroundColor: 'var(--table-row-2)'}}>
                   <Label className="text-lg font-semibold block mb-2">PhonePe Received (₹)</Label>
                   <Input 
                     type="number" 
                     value={phonePe} 
                     onChange={(e) => setPhonePe(e.target.value)} 
                     placeholder="0" 
-                    className="h-[60px] text-3xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 text-info"
+                    className="h-[60px] text-3xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 text-info bg-background"
                   />
                 </div>
                 
-                <div className="bg-destructive/20 border-2 border-destructive text-destructive p-5 rounded-xl flex justify-between items-center shadow-sm block">
+                <div className="p-5 rounded-sm flex justify-between items-center shadow-none block border-2 border-destructive badge-error">
                   <span className="font-extrabold uppercase tracking-widest text-lg">Discount Given:</span>
                   <span className="text-3xl font-black flex items-center"><IndianRupee className="w-6 h-6 mr-1" />{discountGivenVal.toLocaleString("en-IN")}</span>
                 </div>
@@ -453,12 +476,12 @@ export default function InventoryOut({
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 md:gap-6 mt-10 pt-6 border-t">
-            <Button onClick={handleSaveSales} className="flex-1 h-[60px] text-xl bg-primary hover:bg-primary/80 font-bold text-white shadow-md">
+            <Button onClick={handleSaveSales} className="flex-1 h-[60px] text-xl bg-primary hover:bg-primary/80 font-bold text-white shadow-none">
               Save Sales Entry
             </Button>
             <Button 
               variant="outline" 
-              className="flex-1 h-[60px] text-xl border-2 border-primary text-primary hover:bg-primary hover:text-white font-bold shadow-sm"
+              className="flex-1 h-[60px] text-xl border-2 border-primary text-primary hover:bg-primary hover:text-white font-bold shadow-none"
               onClick={() => toast({ title: "Redirecting...", description: "Opening Billing System" })}
             >
               Generate Bill
@@ -468,9 +491,9 @@ export default function InventoryOut({
       </div>
 
       {/* Sales Log Table */}
-      <div className="rounded-xl border bg-card shadow-md mb-8">
-        <div className="px-6 py-4 border-b flex justify-between items-center bg-card border-zinc-200">
-          <h2 className="text-lg font-semibold text-zinc-800">Daily Sales Log</h2>
+      <div className="rounded-sm border bg-card shadow-none mb-8">
+        <div className="px-6 py-4 border-b flex justify-between items-center border-border" style={{backgroundColor: 'var(--table-header)'}}>
+          <h2 className="text-lg font-black text-foreground uppercase tracking-wide">Daily Sales Log</h2>
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="text-xs h-8">
@@ -561,10 +584,10 @@ export default function InventoryOut({
 
       {/* Bill Preview Modal */}
       <Dialog open={!!selectedBill} onOpenChange={(open) => !open && setSelectedBill(null)}>
-        <DialogContent className="w-[95%] sm:max-w-[450px] p-0 overflow-hidden gap-0">
+        <DialogContent className="w-[95%] w-[95%] sm:max-w-[450px] p-0 overflow-hidden gap-0">
           <div className="bg-primary p-6 text-white flex justify-between items-start">
             <div className="flex items-center gap-3">
-              <div className="bg-card p-2 rounded-lg">
+              <div className="bg-card p-2 rounded-sm">
                 <Ham className="h-8 w-8 text-primary" />
               </div>
               <div>
@@ -643,15 +666,15 @@ export default function InventoryOut({
               </tfoot>
             </table>
 
-            <div className="bg-secondary/20 p-4 rounded-lg text-center border-dashed border">
+            <div className="bg-secondary/20 p-4 rounded-sm text-center border-dashed border">
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Support & Feedback</p>
               <p className="text-xs font-medium">+91-9876543210 | pinaka.meat@gmail.com</p>
             </div>
           </div>
           
-          <DialogFooter className="p-4 bg-muted/30 border-t flex sm:justify-between items-center gap-2">
-            <p className="text-[10px] text-muted-foreground flex-1 italic">Thank you for shopping with Pinaka Meat Shop!</p>
-            <div className="flex gap-2">
+          <DialogFooter className="p-4 bg-muted/30 border-t flex flex-col sm:flex-row sm:justify-between items-center gap-4 sm:gap-2">
+            <p className="text-[10px] text-center sm:text-left text-muted-foreground flex-1 italic mb-2 sm:mb-0">Thank you for shopping with Pinaka Meat Shop!</p>
+            <div className="flex w-full sm:w-auto gap-2 justify-center sm:justify-end">
               <Button variant="outline" size="sm" onClick={() => setSelectedBill(null)} className="h-8">Close</Button>
               <Button size="sm" className="bg-primary hover:bg-primary/80 h-8">
                 <Download className="h-3 w-3 mr-2" /> Download PDF

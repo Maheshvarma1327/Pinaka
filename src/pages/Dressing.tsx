@@ -27,7 +27,19 @@ const defaultPackaging = [
 
 export default function Dressing() {
   const { toast } = useToast();
-  const [records, setRecords] = useState(initialRecords);
+  const [records, setRecordsState] = useState(() => {
+    try {
+      const stored = localStorage.getItem("pinaka_dressing_records");
+      return stored ? JSON.parse(stored) : initialRecords;
+    } catch {
+      return initialRecords;
+    }
+  });
+
+  const setRecords = (newRecs: any[]) => {
+    setRecordsState(newRecs);
+    localStorage.setItem("pinaka_dressing_records", JSON.stringify(newRecs));
+  };
 
   const [editingBatch, setEditingBatch] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
@@ -253,7 +265,7 @@ export default function Dressing() {
       const totalWt = pkgItems.reduce((sum, item) => sum + item.qty, 0);
       const grandTotal = pkgItems.reduce((sum, item) => sum + item.qty * item.price, 0);
       
-      const newItem = {
+      const packagingData = {
         batch: packagingBatch,
         date: new Date().toISOString().split("T")[0],
         bone: pkgItems[0].qty,
@@ -261,14 +273,18 @@ export default function Dressing() {
         mixed: pkgItems[2].qty,
         skin: pkgItems[3].qty,
         meat: pkgItems[4].qty,
+        total_weight: totalWt,
+        total_amount: grandTotal,
         totalWeight: totalWt,
         totalAmount: grandTotal,
         status: "Available"
       };
 
+      console.log(packagingData);
+
       try {
         const existingInv = JSON.parse(localStorage.getItem("pinaka_main_inventory") || "[]");
-        existingInv.unshift(newItem);
+        existingInv.unshift(packagingData);
         localStorage.setItem("pinaka_main_inventory", JSON.stringify(existingInv));
       } catch (e) {
          console.error(e);
@@ -325,13 +341,18 @@ export default function Dressing() {
   ]));
 
   return (
-    <div>
-      <Breadcrumb items={[{ label: "Dressing" }]} />
-      <h1 className="text-2xl font-bold mb-6">Dressing Management</h1>
+    <div className="animate-fade-in pb-12 w-full">
+      <div className="flex flex-col gap-4 mb-8">
+        <Breadcrumb items={[{ label: "Dressing" }]} />
+        <div>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Dressing Management</h1>
+          <p className="text-sm text-muted-foreground mt-1 font-medium">Manage before and after slaughter processes and yields.</p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Before Slaughter */}
-        <div className="rounded-lg border bg-card p-6 shadow-md">
+        <div className="rounded-sm border bg-card p-6 shadow-none">
           <h2 className="text-lg font-semibold mb-4">Before Slaughter</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><Label>Animal ID</Label><Input value={animalId} onChange={(e) => setAnimalId(e.target.value)} placeholder="AN-106" /></div>
@@ -345,7 +366,7 @@ export default function Dressing() {
         </div>
 
         {/* After Slaughter */}
-        <div className="rounded-lg border bg-card p-6 shadow-md">
+        <div className="rounded-sm border bg-card p-6 shadow-none">
           <h2 className="text-lg font-semibold mb-4">After Slaughter</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -353,15 +374,22 @@ export default function Dressing() {
               <Input value={nextBatch} disabled />
             </div>
             <div>
-              <Label>Link to Animal ID</Label>
+              <div className="flex flex-wrap justify-between items-center mb-1 gap-1">
+                <Label>Link to Animal ID</Label>
+                {linkedAnimal && (
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                    {linkedAnimal} / {selectedRecord?.animalWeight ? `${selectedRecord.animalWeight} kg` : "N/A"}
+                  </span>
+                )}
+              </div>
               <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex h-10 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm"
                 value={linkedAnimal}
                 onChange={(e) => setLinkedAnimal(e.target.value)}
               >
-                <option value="">Select Animal</option>
+                <option value="" className="bg-background text-foreground">Select Animal</option>
                 {animalOptions.map((a) => (
-                  <option key={a} value={a}>{a}</option>
+                  <option key={a} value={a} className="bg-background text-foreground">{a}</option>
                 ))}
               </select>
             </div>
@@ -371,16 +399,16 @@ export default function Dressing() {
             <div><Label>Offals (kg)</Label><Input type="number" value={offals} onChange={(e) => setOffals(e.target.value)} /></div>
           </div>
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            <div className="bg-secondary rounded-md p-2"><span className="text-muted-foreground">Total:</span> <strong>{totalCarcass} kg</strong></div>
-            <div className="bg-secondary rounded-md p-2"><span className="text-muted-foreground">Wastage:</span> <strong>{wastage} kg</strong></div>
-            <div className="bg-secondary rounded-md p-2"><span className="text-muted-foreground">Wastage %:</span> <strong>{wastagePercent}%</strong></div>
-            <div className="bg-secondary rounded-md p-2"><span className="text-muted-foreground">Usable:</span> <strong>{usableMeat} kg</strong></div>
+            <div className="bg-secondary rounded-sm p-2"><span className="text-muted-foreground">Total:</span> <strong>{totalCarcass} kg</strong></div>
+            <div className="bg-secondary rounded-sm p-2"><span className="text-muted-foreground">Wastage:</span> <strong>{wastage} kg</strong></div>
+            <div className="bg-secondary rounded-sm p-2"><span className="text-muted-foreground">Wastage %:</span> <strong>{wastagePercent}%</strong></div>
+            <div className="bg-secondary rounded-sm p-2"><span className="text-muted-foreground">Usable:</span> <strong>{usableMeat} kg</strong></div>
           </div>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <div className="bg-primary/5 border border-primary/20 rounded-md p-2">
+            <div className="bg-primary/5 border border-primary/20 rounded-sm p-2">
               <span className="text-muted-foreground">Total Amount:</span> <strong className="text-primary">₹{totalCost.toLocaleString("en-IN")}</strong>
             </div>
-            <div className="bg-primary/5 border border-primary/20 rounded-md p-2">
+            <div className="bg-primary/5 border border-primary/20 rounded-sm p-2">
               <span className="text-muted-foreground">Cost per kg:</span> <strong className="text-primary">₹{costPerKg}/kg</strong>
             </div>
           </div>
@@ -390,12 +418,21 @@ export default function Dressing() {
 
       {/* Packaging */}
       {packagingBatch && (
-        <div className="rounded-lg border bg-card p-6 shadow-md mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Button variant="ghost" size="icon" onClick={() => setPackagingBatch(null)} className="h-8 w-8 text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h2 className="text-lg font-semibold m-0">Packaging — Batch [{packagingBatch}]</h2>
+        <div className="rounded-sm border bg-card p-6 shadow-none mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => setPackagingBatch(null)} className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h2 className="text-lg font-semibold m-0">Packaging — Batch [{packagingBatch}]</h2>
+            </div>
+            
+            <div className="bg-primary/15 text-primary border border-primary/30 px-5 py-2.5 rounded-sm shadow-none font-bold text-sm tracking-wide self-start sm:self-auto">
+              Usable Meat: {(() => {
+                const pRec = records.find(r => r.batch === packagingBatch);
+                return pRec?.usableMeat && pRec.usableMeat !== "-" ? `${pRec.usableMeat} kg` : "N/A";
+              })()}
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -464,7 +501,7 @@ export default function Dressing() {
           {editForm && (
             <div className="space-y-6">
               {/* Before Slaughter */}
-              <div className="border rounded-md p-4 bg-muted/20">
+              <div className="border rounded-sm p-4 bg-muted/20">
                 <h3 className="font-medium mb-3">Before Slaughter</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div><Label>Animal ID</Label><Input value={editForm.animalId || ""} onChange={(e) => handleEditField("animalId", e.target.value)} /></div>
@@ -477,7 +514,7 @@ export default function Dressing() {
               </div>
 
               {/* After Slaughter */}
-              <div className="border rounded-md p-4 bg-muted/20">
+              <div className="border rounded-sm p-4 bg-muted/20">
                 <h3 className="font-medium mb-3">After Slaughter</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div><Label>Head (kg)</Label><Input type="number" value={editForm.head || ""} onChange={(e) => handleEditField("head", e.target.value)} /></div>
@@ -493,7 +530,7 @@ export default function Dressing() {
               </div>
 
               {/* Packaging */}
-              <div className="border rounded-md p-4 bg-muted/20">
+              <div className="border rounded-sm p-4 bg-muted/20">
                 <h3 className="font-medium mb-3">Packaging</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   <div><Label>Bone (kg)</Label><Input type="number" value={editForm.pkgItems?.bone || ""} onChange={(e) => handleEditPkg("bone", e.target.value)} /></div>
@@ -506,10 +543,10 @@ export default function Dressing() {
 
               <div className="flex items-center gap-3 mt-4">
                 <Label>Status:</Label>
-                <select className="h-9 rounded-md border text-sm px-2 bg-background" value={editForm.status} onChange={(e) => handleEditField("status", e.target.value)}>
-                   <option value="Unslaughtered">Unslaughtered</option>
-                   <option value="Slaughtered">Slaughtered</option>
-                   <option value="Packed">Packed</option>
+                <select className="h-9 rounded-sm border text-sm px-2 bg-background" value={editForm.status} onChange={(e) => handleEditField("status", e.target.value)}>
+                   <option value="Unslaughtered" className="bg-background text-foreground">Unslaughtered</option>
+                   <option value="Slaughtered" className="bg-background text-foreground">Slaughtered</option>
+                   <option value="Packed" className="bg-background text-foreground">Packed</option>
                 </select>
               </div>
 
@@ -523,7 +560,7 @@ export default function Dressing() {
       </Dialog>
 
       {/* Records */}
-      <div className="rounded-lg border bg-card p-6 shadow-md">
+      <div className="rounded-sm border bg-card p-6 shadow-none">
         <h2 className="text-lg font-semibold mb-4">Dressing Records</h2>
         <DataTable
           columns={[
@@ -542,9 +579,9 @@ export default function Dressing() {
             }},
             { header: "Status", accessor: (r) => {
               let colorClass = "bg-secondary text-secondary-foreground";
-              if (r.status === "Packed") colorClass = "bg-success/10 text-success";
-              else if (r.status === "Slaughtered") colorClass = "bg-warning/10 text-warning";
-              else if (r.status === "Unslaughtered") colorClass = "bg-destructive/10 text-destructive";
+              if (r.status === "Packed") colorClass = "badge-success";
+              else if (r.status === "Slaughtered") colorClass = "badge-warning";
+              else if (r.status === "Unslaughtered") colorClass = "badge-error";
 
               return (
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>

@@ -1,40 +1,36 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bell, Ham, Menu, X, Sun, Moon } from "lucide-react";
+import { 
+  Bell, 
+  Menu, 
+  X, 
+  LayoutDashboard, 
+  Workflow, 
+  Boxes, 
+  Store, 
+  CircleDollarSign, 
+  TrendingUp, 
+  PiggyBank,
+  Moon,
+  Sun,
+  Monitor
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useTheme } from "./ThemeProvider";
 
 const navItems = [
-  { label: "Dashboard", path: "/dashboard" },
-  { label: "Dressing", path: "/dressing" },
-  { label: "Inventory & Supply", path: "/supply" },
-  { label: "Shop", path: "/shop" },
-  { label: "Sales", path: "/sales" },
-  { label: "Reports", path: "/reports" },
+  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Dressing", path: "/dressing", icon: Workflow },
+  { label: "Inventory", path: "/supply", icon: Boxes },
+  { label: "Shop", path: "/shop", icon: Store },
+  { label: "Sales", path: "/sales", icon: CircleDollarSign },
+  { label: "Reports", path: "/reports", icon: TrendingUp },
 ];
 
 export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const [theme, setTheme] = useState<"light" | "dark" | "default">(() => {
-    return (localStorage.getItem("theme") as "light" | "dark" | "default") || "default";
-  });
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    
-    if (theme === "default") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      root.classList.add(systemTheme);
-      localStorage.removeItem("theme");
-      return;
-    }
-    
-    root.classList.add(theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+  const { theme, setTheme } = useTheme();
 
   const isActive = (path?: string) => {
     if (!path) return false;
@@ -43,96 +39,168 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-card border-b shadow-md">
-      {/* Row 1 */}
-      <div className="container flex items-center justify-between h-14">
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <Ham className="h-7 w-7 text-primary" />
-          <span className="text-xl font-bold text-primary">Pinaka</span>
-        </Link>
-        <div className="flex items-center gap-3">
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="relative p-2 hover:bg-secondary border shadow-md bg-background transition-shadow">
-                <Sun className="h-4 w-4 dark:hidden" />
-                <Moon className="h-4 w-4 hidden dark:block" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[180px]">
-              <DropdownMenuItem onClick={() => setTheme("default")} className="font-semibold cursor-pointer">
-                System Default
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("light")} className="font-semibold cursor-pointer">
-                Light
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")} className="font-semibold cursor-pointer">
-                Dark
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <button className="relative p-2 hover:bg-secondary">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-primary" />
-          </button>
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="text-sm font-medium">B Manoj</span>
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
-              BM
-            </div>
+    <header className="sticky top-0 z-50 border-b shadow-none transition-all duration-300" style={{backgroundColor: 'var(--navbar-bg)', borderColor: 'var(--navbar-border)'}}>
+      <div className="container flex items-center justify-between h-[76px] px-4 lg:px-6 max-w-[1600px] mx-auto">
+        
+        {/* Left Branding */}
+        <Link to="/dashboard" className="flex items-center gap-3 flex-shrink-0 group">
+          <div className="relative w-[45px] h-[45px] flex items-center justify-center flex-shrink-0 transform transition-transform group-hover:scale-105">
+            <img src="/logo.png" alt="Pinaka Logo" className="w-full h-full object-contain" />
           </div>
+          <div className="flex flex-col hidden sm:flex justify-center ml-1">
+            <span className="text-[28px] font-black leading-none tracking-tighter bg-gradient-to-br from-primary via-[#FF8C3A] to-[#FF5500] bg-clip-text text-transparent drop-shadow-sm pb-1">PINAKA</span>
+          </div>
+        </Link>
+
+        {/* Center Nav Links - Desktop */}
+        <nav className="hidden md:flex items-center gap-1 lg:gap-3 flex-1 justify-center ml-2 lg:ml-8">
+          {navItems.map((item) => {
+            const active = isActive(item.path);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path!}
+                className={cn(
+                  "relative flex flex-col items-center justify-center w-[84px] h-[64px] rounded-sm transition-all duration-300 group overflow-hidden",
+                  active
+                    ? "bg-primary/20"
+                    : "hover:bg-white/10"
+                )}
+              >
+                {/* Active Indicator Bar */}
+                {active && (
+                  <div className="absolute top-0 inset-x-0 h-1 bg-primary rounded-b-full shadow-[0_0_8px_var(--primary)]" />
+                )}
+                
+                <Icon 
+                  strokeWidth={active ? 2 : 1.5} 
+                  className={cn(
+                    "h-[22px] w-[22px] mb-1.5 transition-all duration-300", 
+                    active 
+                      ? "text-primary drop-shadow-none scale-110" 
+                      : "text-muted-foreground group-hover:text-foreground"
+                  )} 
+                />
+                <span className={cn(
+                  "text-[11px] tracking-wide transition-colors",
+                  active ? "font-bold text-primary" : "font-medium text-muted-foreground group-hover:text-foreground"
+                )}>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-2 lg:gap-5 flex-shrink-0">
+        
+          {/* Theme Toggle */}
+          <div className="hidden sm:flex bg-muted p-1 rounded-sm items-center border border-border">
+            <button
+              onClick={() => setTheme("theme-default")}
+              className={cn(
+                "p-1.5 rounded-sm transition-colors flex items-center justify-center",
+                theme === "theme-default" ? "bg-card shadow-none text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Default Theme"
+            >
+              <Monitor className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setTheme("theme-light")}
+              className={cn(
+                "p-1.5 rounded-sm transition-colors flex items-center justify-center",
+                theme === "theme-light" ? "bg-card shadow-none text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Light Theme"
+            >
+              <Sun className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setTheme("theme-dark")}
+              className={cn(
+                "p-1.5 rounded-sm transition-colors flex items-center justify-center",
+                theme === "theme-dark" ? "bg-card shadow-none text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Dark Theme"
+            >
+              <Moon className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <div className="h-8 w-px bg-border hidden sm:block mx-1"></div>
+
+          <button className="relative p-2.5 rounded-full hover:bg-muted transition-colors group">
+            <Bell className="h-[22px] w-[22px] text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
+            <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-primary rounded-full" style={{border: '2px solid var(--navbar-bg)'}} />
+          </button>
+          
+          <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold ring-2 ring-transparent cursor-pointer hover:ring-primary/20 transition-all" style={{backgroundColor: 'var(--primary)', color: '#FFFFFF'}}>
+            BM
+          </div>
+
           <button
-            className="sm:hidden p-2 rounded-md hover:bg-secondary"
+            className="md:hidden p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}
           </button>
         </div>
       </div>
 
-      {/* Row 2 - Desktop */}
-      <nav className="hidden sm:block border-t bg-card">
-        <div className="container flex items-center gap-1 h-11">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path!}
-              className={cn(
-                "px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                isActive(item.path)
-                  ? "text-primary bg-accent"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
-
       {/* Mobile menu */}
       {mobileOpen && (
-        <nav className="sm:hidden border-t bg-card px-4 pb-4 pt-2 space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path!}
-              onClick={() => setMobileOpen(false)}
+        <nav className="md:hidden border-t border-border bg-card px-4 pb-4 pt-2 space-y-1 shadow-none">
+          <div className="flex bg-muted p-1 rounded-sm items-center border border-border mb-4 justify-between">
+            <button
+              onClick={() => setTheme("theme-default")}
               className={cn(
-                "block px-3 py-2 text-sm font-medium rounded-md",
-                isActive(item.path) ? "text-primary bg-accent" : "text-muted-foreground"
+                "flex-1 p-2 rounded-sm transition-colors flex items-center justify-center gap-2",
+                theme === "theme-default" ? "bg-card shadow-none text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {item.label}
-            </Link>
-          ))}
-          <div className="flex items-center gap-2 px-3 pt-2 border-t mt-2">
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
-              BM
-            </div>
-            <span className="text-sm font-medium">B Manoj</span>
+              <Monitor className="w-4 h-4" />
+              <span className="text-xs font-semibold">Default</span>
+            </button>
+            <button
+              onClick={() => setTheme("theme-light")}
+              className={cn(
+                "flex-1 p-2 rounded-sm transition-colors flex items-center justify-center gap-2",
+                theme === "theme-light" ? "bg-card shadow-none text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Sun className="w-4 h-4" />
+              <span className="text-xs font-semibold">Light</span>
+            </button>
+            <button
+              onClick={() => setTheme("theme-dark")}
+              className={cn(
+                "flex-1 p-2 rounded-sm transition-colors flex items-center justify-center gap-2",
+                theme === "theme-dark" ? "bg-card shadow-none text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Moon className="w-4 h-4" />
+              <span className="text-xs font-semibold">Dark</span>
+            </button>
           </div>
+          {navItems.map((item) => {
+            const active = isActive(item.path);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path!}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-3 text-sm font-bold rounded-sm transition-colors",
+                  active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <Icon strokeWidth={active ? 2 : 1.5} className="h-5 w-5" />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       )}
     </header>

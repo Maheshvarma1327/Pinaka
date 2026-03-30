@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Breadcrumb from "@/components/Breadcrumb";
 import { 
   Store, 
   Trash2, 
@@ -20,7 +21,7 @@ import { Button } from "@/components/ui/button";
 // A simple Input mock if "@/components/ui/input" is not imported properly; assuming standard setup
 const Input = ({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input 
-    className={cn("flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className)}
+    className={cn("flex h-10 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className)}
     {...props}
   />
 );
@@ -113,16 +114,18 @@ export default function Shop() {
   };
 
   return (
-    <div className="container py-8 max-w-7xl">
-      {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">Shop Management</h1>
-          <p className="text-sm text-muted-foreground">Manage offline shops and owners</p>
+    <div className="animate-fade-in pb-12 w-full">
+      <div className="flex flex-col gap-4 mb-8">
+        <Breadcrumb items={[{ label: "Shop Management" }]} />
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-foreground tracking-tight">Shop Management</h1>
+            <p className="text-sm text-muted-foreground mt-1 font-medium">Manage offline shops and owners.</p>
+          </div>
+          <Button onClick={handleAddShop} className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center gap-2 h-11 px-6 rounded-sm shadow-none">
+            <Plus className="w-5 h-5" /> Add New Shop
+          </Button>
         </div>
-        <Button onClick={handleAddShop} className="bg-destructive hover:bg-destructive text-white font-semibold flex items-center gap-2 h-11 px-6">
-          <Plus className="w-5 h-5" /> Add New Shop
-        </Button>
       </div>
 
       {/* Search Bar */}
@@ -131,7 +134,7 @@ export default function Shop() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input 
             placeholder="Search shops by name, ID or location..." 
-            className="pl-12 py-3 h-auto text-base rounded-xl border-zinc-200 shadow-md focus-visible:ring-red-500"
+            className="pl-12 py-3 h-auto text-base rounded-sm border-border shadow-none focus-visible:ring-primary focus-visible:border-primary"
           />
         </div>
       </div>
@@ -139,12 +142,12 @@ export default function Shop() {
       {/* Cards Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {shops.map((shop) => (
-          <Card key={shop.id} className="border border-secondary shadow-md hover:shadow-md transition-shadow rounded-2xl overflow-hidden bg-card">
+          <Card key={shop.id} className="border border-border shadow-none hover:bg-card-hover transition-colors rounded-sm overflow-hidden bg-card">
             <CardContent className="p-6">
               
               {/* Card Header (Icon only now) */}
               <div className="flex justify-between items-start mb-4">
-                <div className="p-2.5 bg-red-50 text-destructive rounded-lg">
+                <div className="p-2.5 bg-primary/10 text-primary rounded-sm">
                   <StoreIcon className="w-5 h-5" />
                 </div>
               </div>
@@ -192,10 +195,10 @@ export default function Shop() {
                     />
                   </div>
                   <div className="flex gap-2 pt-2">
-                    <Button onClick={saveEdit} className="w-full bg-green-600 hover:bg-green-700 text-white h-10">
+                    <Button onClick={saveEdit} className="w-full bg-success hover:bg-success/90 text-success-foreground h-10">
                       <Check className="w-4 h-4 mr-2" /> Save
                     </Button>
-                    <Button onClick={cancelEdit} variant="outline" className="w-full h-10 text-zinc-600">
+                    <Button onClick={cancelEdit} variant="outline" className="w-full h-10 text-muted-foreground hover:bg-accent">
                       <XIcon className="w-4 h-4 mr-2" /> Cancel
                     </Button>
                   </div>
@@ -211,14 +214,14 @@ export default function Shop() {
                     <div className="flex items-center gap-1">
                       <button 
                         onClick={(e) => startEdit(e, shop)}
-                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-red-50 rounded-md transition-colors"
+                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-sm transition-colors"
                         title="Edit Details"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={(e) => handleDelete(e, shop.id)}
-                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-red-50 rounded-md transition-colors"
+                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm transition-colors"
                         title="Delete Shop"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -228,15 +231,15 @@ export default function Shop() {
 
                   {/* Details List */}
                   <div className="space-y-3.5 mb-8">
-                    <div className="flex items-center gap-3 text-sm text-zinc-600">
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
                       <User className="w-4 h-4 text-muted-foreground" />
                       <span className="font-medium">{shop.managerName}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-zinc-600">
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
                       <Phone className="w-4 h-4 text-muted-foreground" />
                       <span>{shop.phone}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-zinc-600">
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
                       <MapPin className="w-4 h-4 text-muted-foreground" />
                       <span>{shop.location}</span>
                     </div>
@@ -246,7 +249,7 @@ export default function Shop() {
                   <div className="space-y-3">
                     <Link to={`/shop/${shop.id}`} className="block w-full">
                       <Button 
-                        className="w-full bg-destructive hover:bg-destructive text-white flex items-center justify-center gap-2 h-11 rounded-xl"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-2 h-11 rounded-sm shadow-none"
                       >
                         <StoreIcon className="w-4 h-4" /> Open Shop
                       </Button>

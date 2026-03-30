@@ -25,10 +25,10 @@ export default function Login() {
       {/* Dark overlay for better readability */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
 
-      <div className="relative z-10 w-full max-w-md p-8 rounded-2xl bg-card/10 border border-white/20 shadow-2xl backdrop-blur-md">
+      <div className="relative z-10 w-full max-w-md p-8 rounded-sm bg-card/10 border border-white/20 shadow-none backdrop-blur-md">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4 border border-primary/30">
-            <Ham className="w-8 h-8 text-primary shadow-md" />
+            <Ham className="w-8 h-8 text-primary shadow-none" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Pinaka Retail</h1>
           <p className="text-sm text-gray-300 mt-2">Sign in to manage your inventory</p>
@@ -60,7 +60,7 @@ export default function Login() {
           
           <Button 
             type="submit" 
-            className="w-full text-lg py-6 bg-primary hover:bg-primary/90 text-white font-semibold transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-primary/20"
+            className="w-full text-lg py-6 bg-primary hover:bg-primary/90 text-white font-semibold transition-all hover:scale-[1.02] active:scale-95 shadow-none shadow-primary/20"
           >
             Login
           </Button>

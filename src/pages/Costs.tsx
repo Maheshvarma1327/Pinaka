@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import Breadcrumb from "@/components/Breadcrumb";
 import StatCard from "@/components/StatCard";
 import DataTable from "@/components/DataTable";
@@ -50,12 +51,20 @@ const summaryChartData = [
   { month: "Mar 26", revenue: 160000, dailyCosts: 43000, monthlyBills: 19350, slaughterCosts: 11500 },
 ];
 
-export default function Costs() {
+export default function Costs({ shopId }: { shopId?: string }) {
   const { toast } = useToast();
+  const { id: paramId } = useParams();
+  const id = shopId || paramId || "global";
   
-  const [dailyCosts, setDailyCosts] = useState(initialDailyCosts);
-  const [monthlyBills, setMonthlyBills] = useState(initialMonthlyBills);
-  const [slaughterCosts, setSlaughterCosts] = useState(initialSlaughterCosts);
+  const [dailyCosts, setDailyCosts] = useState(() => {
+    try { const d = localStorage.getItem(`pinaka_daily_costs_${id}`); return d ? JSON.parse(d) : initialDailyCosts; } catch { return initialDailyCosts; }
+  });
+  const [monthlyBills, setMonthlyBills] = useState(() => {
+    try { const d = localStorage.getItem(`pinaka_monthly_bills_${id}`); return d ? JSON.parse(d) : initialMonthlyBills; } catch { return initialMonthlyBills; }
+  });
+  const [slaughterCosts, setSlaughterCosts] = useState(() => {
+    try { const d = localStorage.getItem(`pinaka_slaughter_costs_${id}`); return d ? JSON.parse(d) : initialSlaughterCosts; } catch { return initialSlaughterCosts; }
+  });
 
   // Daily Cost Form
   const [dcDate, setDcDate] = useState(new Date().toISOString().split("T")[0]);
@@ -81,7 +90,9 @@ export default function Costs() {
       notes: dcNotes,
       total
     };
-    setDailyCosts([newRecord, ...dailyCosts]);
+    const newRecords = [newRecord, ...dailyCosts];
+    setDailyCosts(newRecords);
+    localStorage.setItem(`pinaka_daily_costs_${id}`, JSON.stringify(newRecords));
     toast({ title: "Saved", description: "Daily cost recorded successfully." });
     setDcLabour(""); setDcTransport(""); setDcIce(""); setDcMisc(""); setDcNotes("");
   };
@@ -108,7 +119,9 @@ export default function Costs() {
       other: Number(mbOther) || 0,
       total
     };
-    setMonthlyBills([newRecord, ...monthlyBills]);
+    const newRecords = [newRecord, ...monthlyBills];
+    setMonthlyBills(newRecords);
+    localStorage.setItem(`pinaka_monthly_bills_${id}`, JSON.stringify(newRecords));
     toast({ title: "Saved", description: "Monthly bills recorded successfully." });
     setMbMonth(""); setMbElectricity(""); setMbRent(""); setMbWater(""); setMbOther("");
   };
@@ -135,21 +148,29 @@ export default function Costs() {
       other: Number(scOther) || 0,
       total
     };
-    setSlaughterCosts([newRecord, ...slaughterCosts]);
+    const newRecords = [newRecord, ...slaughterCosts];
+    setSlaughterCosts(newRecords);
+    localStorage.setItem(`pinaka_slaughter_costs_${id}`, JSON.stringify(newRecords));
     toast({ title: "Saved", description: "Slaughter cost recorded successfully." });
     setScBatch(""); setScSlaughterhouse(""); setScPackaging(""); setScOther("");
   };
 
-  const deleteDailyCost = (id: number) => {
-    setDailyCosts(dailyCosts.filter(d => d.id !== id));
+  const deleteDailyCost = (delId: number) => {
+    const newRecords = dailyCosts.filter((d: any) => d.id !== delId);
+    setDailyCosts(newRecords);
+    localStorage.setItem(`pinaka_daily_costs_${id}`, JSON.stringify(newRecords));
     toast({ title: "Deleted", description: "Cost record deleted." });
   };
-  const deleteMonthlyBill = (id: number) => {
-    setMonthlyBills(monthlyBills.filter(d => d.id !== id));
+  const deleteMonthlyBill = (delId: number) => {
+    const newRecords = monthlyBills.filter((d: any) => d.id !== delId);
+    setMonthlyBills(newRecords);
+    localStorage.setItem(`pinaka_monthly_bills_${id}`, JSON.stringify(newRecords));
     toast({ title: "Deleted", description: "Bill record deleted." });
   };
-  const deleteSlaughterCost = (id: number) => {
-    setSlaughterCosts(slaughterCosts.filter(d => d.id !== id));
+  const deleteSlaughterCost = (delId: number) => {
+    const newRecords = slaughterCosts.filter((d: any) => d.id !== delId);
+    setSlaughterCosts(newRecords);
+    localStorage.setItem(`pinaka_slaughter_costs_${id}`, JSON.stringify(newRecords));
     toast({ title: "Deleted", description: "Slaughter cost deleted." });
   };
 
@@ -160,35 +181,39 @@ export default function Costs() {
   const netProfitMonth = revenueMonth - totalCostsMonth;
 
   return (
-    <div className="animate-fade-in pb-12">
-      <Breadcrumb items={[{ label: "Costs" }]} />
-      <h1 className="text-2xl font-bold mb-6">Operational Costs</h1>
+    <div className="animate-fade-in pb-12 w-full">
+      <div className="flex flex-col gap-4 mb-8">
+        <Breadcrumb items={[{ label: "Costs" }]} />
+        <div>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Operational Costs</h1>
+          <p className="text-sm text-muted-foreground mt-1 font-medium">Log and analyze daily, monthly, and slaughterhouse expenses.</p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard 
           title="Total Costs This Month" 
           value={`₹${totalCostsMonth.toLocaleString("en-IN")}`} 
-          icon={<DollarSign className="h-5 w-5 text-primary" />} 
-          className="border-l-4 border-l-[#B71C1C]"
+          icon={<DollarSign className="h-5 w-5" />} 
+          color="destructive"
         />
         <StatCard 
           title="Daily Avg Cost" 
           value={`₹${dailyAvgCost.toLocaleString("en-IN")}`} 
-          icon={<TrendingDown className="h-5 w-5 text-orange-500" />} 
-          className="border-l-4 border-l-orange-500"
+          icon={<TrendingDown className="h-5 w-5" />} 
+          color="warning"
         />
         <StatCard 
           title="Revenue This Month" 
           value={`₹${revenueMonth.toLocaleString("en-IN")}`} 
-          icon={<TrendingUp className="h-5 w-5 text-success" />} 
-          className="border-l-4 border-l-green-600"
+          icon={<TrendingUp className="h-5 w-5" />} 
+          color="info"
         />
         <StatCard 
           title="Net Profit This Month" 
           value={`₹${netProfitMonth.toLocaleString("en-IN")}`} 
-          icon={<PieChart className="h-5 w-5 text-blue-600" />} 
-          color="info"
-          className="border-l-4 border-l-blue-600"
+          icon={<PieChart className="h-5 w-5" />} 
+          color="success"
         />
       </div>
 
@@ -201,7 +226,7 @@ export default function Costs() {
         </TabsList>
 
         <TabsContent value="daily" className="space-y-6">
-          <div className="rounded-lg border bg-card p-6 shadow-md">
+          <div className="rounded-sm border bg-card p-6 shadow-none">
             <h2 className="text-lg font-semibold mb-4">Add Daily Cost</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               <div><Label>Date</Label><Input type="date" value={dcDate} onChange={e => setDcDate(e.target.value)} /></div>
@@ -212,14 +237,14 @@ export default function Costs() {
               <div><Label>Notes (Optional)</Label><Input value={dcNotes} onChange={e => setDcNotes(e.target.value)} placeholder="..." /></div>
             </div>
             <div className="flex items-center justify-between mt-6">
-              <div className="text-sm border px-3 py-1.5 rounded-md bg-secondary/50 font-medium">
+              <div className="text-sm border border-border px-4 py-2 rounded-sm font-bold text-foreground" style={{backgroundColor: 'var(--table-header)'}}>
                 Total: ₹{((Number(dcLabour) || 0) + (Number(dcTransport) || 0) + (Number(dcIce) || 0) + (Number(dcMisc) || 0)).toLocaleString("en-IN")}
               </div>
-              <Button onClick={handleSaveDailyCost} className="bg-primary hover:bg-primary/80 text-white">Save Cost</Button>
+              <Button onClick={handleSaveDailyCost} className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 rounded-sm shadow-none">Save Cost</Button>
             </div>
           </div>
 
-          <div className="rounded-lg border bg-card p-6 shadow-md">
+          <div className="rounded-sm border bg-card p-6 shadow-none">
             <h2 className="text-lg font-semibold mb-4">Daily Costs Log</h2>
             <DataTable
               columns={[
@@ -243,7 +268,7 @@ export default function Costs() {
         </TabsContent>
 
         <TabsContent value="monthly" className="space-y-6">
-          <div className="rounded-lg border bg-card p-6 shadow-md">
+          <div className="rounded-sm border bg-card p-6 shadow-none">
             <h2 className="text-lg font-semibold mb-4">Add Monthly Bill</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div><Label>Month</Label><Input type="month" value={mbMonth} onChange={e => setMbMonth(e.target.value)} /></div>
@@ -253,14 +278,14 @@ export default function Costs() {
               <div><Label>Other Bills (₹)</Label><Input type="number" value={mbOther} onChange={e => setMbOther(e.target.value)} placeholder="0" /></div>
             </div>
             <div className="flex items-center justify-between mt-6">
-              <div className="text-sm border px-3 py-1.5 rounded-md bg-secondary/50 font-medium">
+              <div className="text-sm border px-3 py-1.5 rounded-sm font-medium" style={{backgroundColor: 'var(--table-header)'}}>
                 Total: ₹{((Number(mbElectricity) || 0) + (Number(mbRent) || 0) + (Number(mbWater) || 0) + (Number(mbOther) || 0)).toLocaleString("en-IN")}
               </div>
-              <Button onClick={handleSaveMonthlyBill} className="bg-primary hover:bg-primary/80 text-white">Save Bills</Button>
+              <Button onClick={handleSaveMonthlyBill} className="bg-primary hover:bg-primary/80 text-primary-foreground">Save Bills</Button>
             </div>
           </div>
 
-          <div className="rounded-lg border bg-card p-6 shadow-md">
+          <div className="rounded-sm border bg-card p-6 shadow-none">
             <h2 className="text-lg font-semibold mb-4">Monthly Bills Log</h2>
             <DataTable
               columns={[
@@ -283,7 +308,7 @@ export default function Costs() {
         </TabsContent>
 
         <TabsContent value="slaughter" className="space-y-6">
-          <div className="rounded-lg border bg-card p-6 shadow-md">
+          <div className="rounded-sm border bg-card p-6 shadow-none">
             <h2 className="text-lg font-semibold mb-4">Add Slaughter Cost</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div><Label>Date</Label><Input type="date" value={scDate} onChange={e => setScDate(e.target.value)} /></div>
@@ -293,14 +318,14 @@ export default function Costs() {
               <div><Label>Other Costs (₹)</Label><Input type="number" value={scOther} onChange={e => setScOther(e.target.value)} placeholder="0" /></div>
             </div>
             <div className="flex items-center justify-between mt-6">
-              <div className="text-sm border px-3 py-1.5 rounded-md bg-secondary/50 font-medium">
+              <div className="text-sm border px-3 py-1.5 rounded-sm font-medium" style={{backgroundColor: 'var(--table-header)'}}>
                 Total: ₹{((Number(scSlaughterhouse) || 0) + (Number(scPackaging) || 0) + (Number(scOther) || 0)).toLocaleString("en-IN")}
               </div>
-              <Button onClick={handleSaveSlaughterCost} className="bg-primary hover:bg-primary/80 text-white">Save Cost</Button>
+              <Button onClick={handleSaveSlaughterCost} className="bg-primary hover:bg-primary/80 text-primary-foreground">Save Cost</Button>
             </div>
           </div>
 
-          <div className="rounded-lg border bg-card p-6 shadow-md">
+          <div className="rounded-sm border bg-card p-6 shadow-none">
             <h2 className="text-lg font-semibold mb-4">Slaughter Costs Log</h2>
             <DataTable
               columns={[
@@ -323,7 +348,7 @@ export default function Costs() {
         </TabsContent>
 
         <TabsContent value="summary" className="space-y-6">
-          <div className="rounded-lg border bg-card p-6 shadow-md flex items-center justify-between">
+          <div className="rounded-sm border bg-card p-6 shadow-none flex items-center justify-between">
             <h2 className="text-lg font-semibold">Costs vs Revenue Summary</h2>
             <div className="flex items-center gap-2">
               <Label>Filter:</Label>
@@ -332,15 +357,15 @@ export default function Costs() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-lg border bg-card p-6 shadow-md">
+            <div className="rounded-sm border bg-card p-6 shadow-none">
               <h3 className="text-md font-semibold mb-4">Full Breakdown</h3>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-secondary/50">
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground w-1/3">Category</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">This Month (₹)</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Last Month (₹)</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Change</th>
+                  <tr className="border-b" style={{backgroundColor: 'var(--table-header)'}}>
+                    <th className="px-4 py-3 text-left font-bold text-muted-foreground w-1/3 uppercase tracking-wider text-xs">Category</th>
+                    <th className="px-4 py-3 text-left font-bold text-muted-foreground uppercase tracking-wider text-xs">This Month (₹)</th>
+                    <th className="px-4 py-3 text-left font-bold text-muted-foreground uppercase tracking-wider text-xs">Last Month (₹)</th>
+                    <th className="px-4 py-3 text-left font-bold text-muted-foreground uppercase tracking-wider text-xs">Change</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -354,7 +379,7 @@ export default function Costs() {
                     <td className="px-4 py-3">Monthly Bills</td>
                     <td className="px-4 py-3">₹19,350</td>
                     <td className="px-4 py-3">₹20,100</td>
-                    <td className="px-4 py-3 text-green-500 flex items-center gap-1"><TrendingDown className="h-3.5 w-3.5" /> -3.7%</td>
+                    <td className="px-4 py-3 text-success flex items-center gap-1"><TrendingDown className="h-3.5 w-3.5" /> -3.7%</td>
                   </tr>
                   <tr className="border-b">
                     <td className="px-4 py-3">Slaughter Costs</td>
@@ -368,36 +393,36 @@ export default function Costs() {
                     <td className="px-4 py-3">₹70,400</td>
                     <td className="px-4 py-3 text-destructive">—</td>
                   </tr>
-                  <tr className="border-b font-bold bg-secondary/10">
+                  <tr className="border-b font-bold" style={{backgroundColor: 'var(--table-row-2)'}}>
                     <td className="px-4 py-3">Total Revenue</td>
                     <td className="px-4 py-3 text-success">₹160,000</td>
                     <td className="px-4 py-3 text-success">₹148,000</td>
-                    <td className="px-4 py-3 text-green-500">—</td>
+                    <td className="px-4 py-3 text-success">—</td>
                   </tr>
-                  <tr className="border-t-[3px] font-black text-base bg-secondary/20 bg-blue-50/50">
-                    <td className="px-4 py-4 text-blue-800">NET PROFIT</td>
-                    <td className="px-4 py-4 text-blue-800">₹86,150</td>
-                    <td className="px-4 py-4 text-blue-800">₹77,600</td>
+                  <tr className="border-t-[3px] font-black text-base" style={{backgroundColor: 'var(--primary-light-bg)'}}>
+                    <td className="px-4 py-4 text-primary">NET PROFIT</td>
+                    <td className="px-4 py-4 text-primary">₹86,150</td>
+                    <td className="px-4 py-4 text-primary">₹77,600</td>
                     <td className="px-4 py-4 text-success flex items-center gap-1"><TrendingUp className="h-4 w-4" /> +11.0%</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <div className="rounded-lg border bg-card p-6 shadow-md flex flex-col">
+            <div className="rounded-sm border bg-card p-6 shadow-none flex flex-col">
               <h3 className="text-md font-semibold mb-6">Revenue vs Total Costs (6 Months)</h3>
               <div className="flex-1 min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={summaryChartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#666' }} dy={10} />
-                    <YAxis tickFormatter={(value) => `₹${value / 1000}k`} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#666' }} />
-                    <RechartsTooltip formatter={(value: number) => `₹${value.toLocaleString()}`} cursor={{ fill: '#f5f5f5' }} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--chart-text)' }} dy={10} />
+                    <YAxis tickFormatter={(value) => `₹${value / 1000}k`} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--chart-text)' }} />
+                    <RechartsTooltip formatter={(value: number) => `₹${value.toLocaleString()}`} cursor={{ fill: 'var(--chart-bg)' }} />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                    <Bar dataKey="revenue" name="Revenue" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                    <Bar dataKey="dailyCosts" name="Daily Costs" stackId="costs" fill="#B71C1C" maxBarSize={40} />
-                    <Bar dataKey="monthlyBills" name="Monthly Bills" stackId="costs" fill="#f97316" maxBarSize={40} />
-                    <Bar dataKey="slaughterCosts" name="Slaughter Costs" stackId="costs" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="revenue" name="Revenue" fill="var(--chart-3)" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="dailyCosts" name="Daily Costs" stackId="costs" fill="var(--chart-5)" maxBarSize={40} />
+                    <Bar dataKey="monthlyBills" name="Monthly Bills" stackId="costs" fill="var(--chart-6)" maxBarSize={40} />
+                    <Bar dataKey="slaughterCosts" name="Slaughter Costs" stackId="costs" fill="var(--chart-4)" radius={[4, 4, 0, 0]} maxBarSize={40} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

@@ -102,21 +102,22 @@ export default function Supply() {
     if (invItemIndex !== -1) {
       const invItem = inventoryIn[invItemIndex];
       
-      const required_bone = Number((nBone * 0.3).toFixed(2));
-      const calculated_meat = Number(((nBone * 0.3) + (nBoneless * 0.5)).toFixed(2));
-      const calculated_skin = Number(((nBone * 0.4) + (nBoneless * 0.5)).toFixed(2));
+      const required_bone = Number((nBone + (nMixed * 0.3)).toFixed(2));
+      const required_boneless = nBoneless;
+      const calculated_meat = Number((nMixed * 0.3).toFixed(2));
+      const calculated_skin = Number((nMixed * 0.4).toFixed(2));
 
       const available_bone = invItem.bone || 0;
+      const available_boneless = invItem.boneless || 0;
       const available_meat = invItem.meat || 0;
       const available_skin = invItem.skin || 0;
 
       if (!overrideFlag) {
         if (
           available_bone < required_bone || 
+          available_boneless < required_boneless ||
           available_meat < calculated_meat || 
-          available_skin < calculated_skin ||
-          invItem.mixed < nMixed ||
-          invItem.boneless < nBoneless
+          available_skin < calculated_skin
         ) {
           setPendingSupply({ nMixed, nBone, nBoneless, nExtra, currentTotal, required_bone, calculated_meat, calculated_skin, invItemIndex });
           setShowOverrideModal(true);
@@ -203,8 +204,11 @@ export default function Supply() {
           bone: finalRecord.bone,
           boneless: finalRecord.boneless,
           mixed: finalRecord.mixed,
+          skin: Number(((finalRecord.bone * 0.4) + (finalRecord.boneless * 0.5) + (finalRecord.mixed * 0.4)).toFixed(2)),
+          meat: Number(((finalRecord.bone * 0.3) + (finalRecord.boneless * 0.5) + (finalRecord.mixed * 0.3)).toFixed(2)),
           rate: 0,
-          total: finalRecord.totalAmount,
+          total_weight: finalRecord.total,
+          total_amount: finalRecord.totalAmount,
         };
 
         if (editingRecordId) {
@@ -264,11 +268,16 @@ export default function Supply() {
   };
 
   return (
-    <div>
-      <Breadcrumb items={[{ label: "Inventory & Supply" }]} />
-      <h1 className="text-2xl font-bold mb-6">Inventory & Supply Management</h1>
+    <div className="animate-fade-in pb-12 w-full">
+      <div className="flex flex-col gap-4 mb-8">
+        <Breadcrumb items={[{ label: "Inventory & Supply" }]} />
+        <div>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Inventory & Supply Management</h1>
+          <p className="text-sm text-muted-foreground mt-1 font-medium">Manage and distribute inventory stock to all retail shops.</p>
+        </div>
+      </div>
 
-      <div className="rounded-lg border bg-card p-6 shadow-md mb-8">
+      <div className="rounded-sm border bg-card p-6 shadow-none mb-8">
         <h2 className="text-lg font-semibold mb-4">Inventory In (Packed Meat)</h2>
         <DataTable
           columns={[
@@ -277,13 +286,15 @@ export default function Supply() {
             { header: "Bone (kg)", accessor: "bone" },
             { header: "Boneless (kg)", accessor: "boneless" },
             { header: "Mixed (kg)", accessor: "mixed" },
-            { header: "Total Weight (kg)", accessor: (r) => r.totalWeight || r.total || 0 },
-            { header: "Total Amount (₹)", accessor: (r) => r.totalAmount ? `₹${r.totalAmount.toLocaleString("en-IN")}` : "-" },
+            { header: "Skin (kg)", accessor: (r) => r.skin || 0 },
+            { header: "Meat (kg)", accessor: (r) => r.meat || 0 },
+            { header: "Total Weight (kg)", accessor: (r) => r.totalWeight || r.total_weight || r.total || 0 },
+            { header: "Total Amount (₹)", accessor: (r) => (r.totalAmount || r.total_amount) ? `₹${(r.totalAmount || r.total_amount).toLocaleString("en-IN")}` : "-" },
             { header: "Status", accessor: (r) => {
               const weight = r.totalWeight || r.total || 0;
               return (
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                weight > 0 ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                weight > 0 ? "badge-success" : "bg-muted text-muted-foreground"
               }`}>
                 {weight > 0 ? "Available" : "Empty"}
               </span>
@@ -295,7 +306,7 @@ export default function Supply() {
 
       {showOverrideModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-in fade-in">
-          <div className="bg-background rounded-lg shadow-lg border w-full max-w-md p-6">
+          <div className="bg-background rounded-sm shadow-none border w-full max-w-md p-6">
             <h3 className="text-xl font-bold mb-2">Insufficient Inventory</h3>
             <p className="text-muted-foreground mb-6">
               Insufficient inventory based on composition breakdown (Skin/Meat/Bone requirements exceed available stock).
@@ -331,17 +342,17 @@ export default function Supply() {
         </div>
       )}
 
-      <div className="rounded-lg border bg-card p-6 shadow-md mb-8">
+      <div className="rounded-sm border bg-card p-6 shadow-none mb-8">
         <h2 className="text-lg font-semibold mb-4">Record Supply (To Shop)</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <Label>Shop Number</Label>
-            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={shopNo} onChange={(e) => setShopNo(e.target.value)}>
-              <option value="">Select Shop</option>
+            <select className="flex h-10 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm" value={shopNo} onChange={(e) => setShopNo(e.target.value)}>
+              <option value="" className="bg-background text-foreground">Select Shop</option>
               {shopsList.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
+                <option key={s.id} value={s.id} className="bg-background text-foreground">{s.name}</option>
               ))}
-              <option value="Others">Others</option>
+              <option value="Others" className="bg-background text-foreground">Others</option>
             </select>
           </div>
           {shopNo === "Others" && (
@@ -352,9 +363,9 @@ export default function Supply() {
           )}
           <div>
             <Label>Batch Number</Label>
-            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={batch} onChange={(e) => setBatch(e.target.value)}>
-              <option value="">Select Batch</option>
-              {inventoryIn.filter(inv => (inv.totalWeight || inv.total || 0) > 0).map(inv => <option key={inv.batch} value={inv.batch}>{inv.batch}</option>)}
+            <select className="flex h-10 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm" value={batch} onChange={(e) => setBatch(e.target.value)}>
+              <option value="" className="bg-background text-foreground">Select Batch</option>
+              {inventoryIn.filter(inv => (inv.totalWeight || inv.total || 0) > 0).map(inv => <option key={inv.batch} value={inv.batch} className="bg-background text-foreground">{inv.batch}</option>)}
               {/* Optional unlinked batches can be hidden or removed now that we pull from inventoryIn */}
             </select>
           </div>
@@ -365,7 +376,7 @@ export default function Supply() {
           <div><Label>Extra Money (₹)</Label><Input type="number" value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="Optional" /></div>
         </div>
         
-        <div className="mt-4 p-4 bg-muted/30 border rounded-md">
+        <div className="mt-4 p-4 bg-muted/30 border rounded-sm">
           <div className="flex justify-between items-center mb-2 text-sm">
             <span>Calculated Amount by Packaging:</span>
             <span>₹{calculatedTotalAmount.toLocaleString("en-IN")}</span>
@@ -381,11 +392,11 @@ export default function Supply() {
         </div>
 
         <div className="flex gap-2 mt-4">
-          <Button className="bg-primary hover:bg-primary/80 tracking-wide flex-1" onClick={handleSave}>
+          <Button className="bg-primary hover:bg-primary/80 text-primary-foreground tracking-wide flex-1" onClick={() => handleSave(false)}>
             {editingRecordId ? "Update Record" : "Supply to Shop / Sync to Shop Inventory"}
           </Button>
           {editingRecordId && (
-            <Button variant="outline" className="flex-1" onClick={() => {
+            <Button variant="outline" className="flex-1 text-muted-foreground hover:bg-accent" onClick={() => {
               setEditingRecordId(null);
               setShopNo(""); setBatch(""); setMixed(""); setBone(""); setBoneless(""); setExtra("");
             }}>
@@ -395,7 +406,7 @@ export default function Supply() {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card p-6 shadow-md">
+      <div className="rounded-sm border bg-card p-6 shadow-none">
         <h2 className="text-lg font-semibold mb-4">Inventory Out</h2>
         <DataTable
           columns={[

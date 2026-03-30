@@ -49,12 +49,12 @@ export default function DataTable<T extends Record<string, any>>({
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card overflow-x-auto">
+      <div className="rounded-sm border overflow-x-auto shadow-none" style={{backgroundColor: 'var(--card-bg)'}}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-secondary/50">
+            <tr className="border-b" style={{backgroundColor: 'var(--table-header)'}}>
               {columns.map((col, i) => (
-                <th key={i} className={`px-4 py-3 text-left font-medium text-muted-foreground ${col.className || ""}`}>
+                <th key={i} className={`px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider ${col.className || ""}`} style={{color: 'var(--text-secondary)'}}>
                   {col.header}
                 </th>
               ))}
@@ -63,7 +63,7 @@ export default function DataTable<T extends Record<string, any>>({
           <tbody>
             {paged.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={columns.length} className="px-4 py-8 text-center" style={{color: 'var(--text-muted)'}}>
                   No records found
                 </td>
               </tr>
@@ -71,12 +71,11 @@ export default function DataTable<T extends Record<string, any>>({
               paged.map((row, ri) => (
                 <tr
                   key={ri}
-                  className={`border-b last:border-0 transition-colors hover:bg-secondary/30 ${
-                    ri % 2 === 1 ? "bg-stripe" : ""
-                  }`}
+                  className="border-b last:border-0 transition-colors"
+                  style={{backgroundColor: ri % 2 === 0 ? 'var(--table-row-1)' : 'var(--table-row-2)', color: 'var(--text-primary)'}}
                 >
                   {columns.map((col, ci) => (
-                    <td key={ci} className={`px-4 py-3 ${col.className || ""}`}>
+                    <td key={ci} className={`px-4 py-3 align-middle font-medium ${col.className || ""}`}>
                       {typeof col.accessor === "function"
                         ? col.accessor(row)
                         : String(row[col.accessor] ?? "")}

@@ -103,7 +103,7 @@ export default function Preparation() {
   };
 
   return (
-    <div className="rounded-xl border bg-card shadow-md mb-8 overflow-hidden animate-fade-in w-full max-w-full">
+    <div className="rounded-sm border bg-card shadow-none mb-8 overflow-hidden animate-fade-in w-full max-w-full">
       <div className="bg-primary px-6 py-3">
         <h2 className="text-lg font-semibold text-white">Daily Entry Form</h2>
       </div>
@@ -115,41 +115,41 @@ export default function Preparation() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
             {/* Input Side */}
-            <div className="space-y-5 border-2 p-5 bg-secondary/20 rounded-xl shadow-sm">
+            <div className="space-y-5 border-2 p-5 bg-secondary/20 rounded-sm shadow-none">
               <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4 border-b pb-2">Raw Usage</h4>
               <div className="grid grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <Label className="text-lg font-semibold">Bone for Fry (kg)</Label>
-                  <Input type="number" className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-sm" value={boneFry} onChange={(e) => setBoneFry(e.target.value)} placeholder="0" />
+                  <Input type="number" className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-none" value={boneFry} onChange={(e) => setBoneFry(e.target.value)} placeholder="0" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-lg font-semibold">Boneless for Fry (kg)</Label>
-                  <Input type="number" className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-sm" value={bonelessFry} onChange={(e) => setBonelessFry(e.target.value)} placeholder="0" />
+                  <Input type="number" className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-none" value={bonelessFry} onChange={(e) => setBonelessFry(e.target.value)} placeholder="0" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <Label className="text-lg font-semibold">Bone for Curry (kg)</Label>
-                  <Input type="number" className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-sm" value={boneCurry} onChange={(e) => setBoneCurry(e.target.value)} placeholder="0" />
+                  <Input type="number" className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-none" value={boneCurry} onChange={(e) => setBoneCurry(e.target.value)} placeholder="0" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-lg font-semibold">Boneless for Curry (kg)</Label>
-                  <Input type="number" className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-sm" value={bonelessCurry} onChange={(e) => setBonelessCurry(e.target.value)} placeholder="0" />
+                  <Input type="number" className="h-[56px] text-2xl font-bold border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-none" value={bonelessCurry} onChange={(e) => setBonelessCurry(e.target.value)} placeholder="0" />
                 </div>
               </div>
             </div>
 
             {/* Output Side */}
-            <div className="space-y-5 border-2 p-5 bg-secondary/20 rounded-xl shadow-sm">
+            <div className="space-y-5 border-2 p-5 bg-secondary/20 rounded-sm shadow-none">
               <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4 border-b pb-2">Prepared Output</h4>
               <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
                   <Label className="text-lg font-bold">Fry Output (kg)</Label>
-                  <Input type="number" className="h-[56px] text-3xl font-black border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-sm text-info" value={fryOutput} onChange={(e) => setFryOutput(e.target.value)} placeholder="0" />
+                  <Input type="number" className="h-[56px] text-3xl font-black border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-none text-info" value={fryOutput} onChange={(e) => setFryOutput(e.target.value)} placeholder="0" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-lg font-bold">Curry Output (kg)</Label>
-                  <Input type="number" className="h-[56px] text-3xl font-black border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-sm text-info" value={curryOutput} onChange={(e) => setCurryOutput(e.target.value)} placeholder="0" />
+                  <Input type="number" className="h-[56px] text-3xl font-black border-2 focus-visible:ring-primary focus-visible:border-primary px-4 shadow-none text-info" value={curryOutput} onChange={(e) => setCurryOutput(e.target.value)} placeholder="0" />
                 </div>
               </div>
             </div>
@@ -161,7 +161,7 @@ export default function Preparation() {
           </div>
           
           <div className="flex justify-end pt-4">
-            <Button onClick={handleSavePrep} className="w-full md:w-auto h-[60px] text-xl bg-primary hover:bg-primary/80 font-bold text-white shadow-md px-12">
+            <Button onClick={handleSavePrep} className="w-full md:w-auto h-[60px] text-xl bg-primary hover:bg-primary/80 font-bold text-white shadow-none px-12">
               Save Preparation
             </Button>
           </div>
