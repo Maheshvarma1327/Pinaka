@@ -336,7 +336,7 @@ export default function Reports() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-card p-4 rounded-sm border border-[var(--border)] shadow-none mb-6">
         
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 w-full lg:w-auto">
-          <div className="bg-slate-100 p-1.5 rounded-sm flex items-center shadow-none border border-slate-200/60 lg:h-11 no-scrollbar overflow-x-auto w-full max-w-full">
+          <div className="bg-slate-100 p-1.5 rounded-sm flex items-center shadow-none border border-slate-200/60 h-11 no-scrollbar overflow-x-auto">
             {["Today", "This Week", "This Month", "Custom"].map(t => (
               <button
                 key={t}
@@ -352,11 +352,11 @@ export default function Reports() {
           </div>
 
           {dateRange === "Custom" && (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-card p-1.5 rounded-sm border border-[var(--border)] shadow-none px-2 lg:h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
+            <div className="flex items-center gap-2 bg-card p-1 rounded-sm border border-[var(--border)] shadow-none px-2 h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
               <div className="w-full sm:w-[130px]">
                  <AdvancedDatePicker value={customStart} onChange={setCustomStart} placeholder="Start Date" />
               </div>
-              <span className="text-muted-foreground font-bold hidden sm:block">-</span>
+              <span className="text-muted-foreground font-bold">-</span>
               <div className="w-full sm:w-[130px]">
                  <AdvancedDatePicker value={customEnd} onChange={setCustomEnd} placeholder="End Date" />
               </div>

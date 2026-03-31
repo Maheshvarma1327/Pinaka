@@ -217,7 +217,7 @@ export default function Dashboard() {
       <div className="flex flex-col mb-8 gap-6">
         <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 w-full">
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 w-full lg:w-auto">
-            <div className="p-1.5 rounded-sm flex items-center shadow-none border lg:h-11 no-scrollbar overflow-x-auto w-full max-w-full" style={{backgroundColor: 'var(--navbar-bg)', borderColor: 'var(--border)'}}>
+            <div className="p-1.5 rounded-sm flex items-center shadow-none border h-11 no-scrollbar overflow-x-auto" style={{backgroundColor: 'var(--navbar-bg)', borderColor: 'var(--border)'}}>
               {["Today", "This Week", "This Month", "Custom"].map((t) => (
                 <button 
                   key={t}
@@ -230,14 +230,12 @@ export default function Dashboard() {
                   {t}
                 </button>
               ))}
-            </div>
-            
             {timeframe === "Custom" && (
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-card p-1.5 rounded-sm border border-[var(--border)] shadow-none px-2 lg:h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
+              <div className="flex items-center gap-2 bg-card p-1 rounded-sm border border-[var(--border)] shadow-none px-2 h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
                 <div className="w-full sm:w-[130px]">
                   <AdvancedDatePicker value={customStart} onChange={(val) => setCustomStart(val)} placeholder="Start Date" />
                 </div>
-                <span className="text-muted-foreground font-bold hidden sm:block">-</span>
+                <span className="text-muted-foreground font-bold">-</span>
                 <div className="w-full sm:w-[130px]">
                   <AdvancedDatePicker value={customEnd} onChange={(val) => setCustomEnd(val)} placeholder="End Date" />
                 </div>
@@ -247,7 +245,7 @@ export default function Dashboard() {
             {/* SECTION 6 — EXPORT FEATURE */}
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" className="h-11 rounded-sm font-bold bg-card border border-[var(--border)] shadow-none hover:text-primary hover:border-primary/30 transition-all px-4 flex items-center justify-center gap-2 w-full lg:w-auto" style={{color: 'var(--text-primary)'}}>
+                <Button variant="outline" className="h-11 rounded-sm font-bold bg-card border border-[var(--border)] shadow-none hover:text-primary hover:border-primary/30 transition-all px-4 flex items-center gap-2 w-full lg:w-auto mt-2 lg:mt-0" style={{color: 'var(--text-primary)'}}>
                   <DownloadCloud className="w-4 h-4" /> Download
                 </Button>
               </DialogTrigger>
@@ -281,6 +279,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* SECTION 1 — NET RESULT (DOMINANT CARD) */}
       <Card className={cn(
@@ -487,6 +486,7 @@ export default function Dashboard() {
 
          </div>
       </div>
+      
     </div>
   );
 }

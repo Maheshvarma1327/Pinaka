@@ -122,7 +122,7 @@ export default function Shop() {
             <h1 className="text-3xl font-black text-foreground tracking-tight">Shop Management</h1>
             <p className="text-sm text-muted-foreground mt-1 font-medium">Manage offline shops and owners.</p>
           </div>
-          <Button onClick={handleAddShop} className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center justify-center gap-2 h-11 px-6 rounded-sm shadow-none">
+          <Button onClick={handleAddShop} className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center gap-2 h-11 px-6 rounded-sm shadow-none">
             <Plus className="w-5 h-5" /> Add New Shop
           </Button>
         </div>

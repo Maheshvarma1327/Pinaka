@@ -54,7 +54,7 @@ export default function DataTable<T extends Record<string, any>>({
           <thead>
             <tr className="border-b" style={{backgroundColor: 'var(--table-header)'}}>
               {columns.map((col, i) => (
-                <th key={i} className={`px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider whitespace-nowrap ${col.className || ""}`} style={{color: 'var(--text-secondary)'}}>
+                <th key={i} className={`px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider ${col.className || ""}`} style={{color: 'var(--text-secondary)'}}>
                   {col.header}
                 </th>
               ))}
@@ -75,7 +75,7 @@ export default function DataTable<T extends Record<string, any>>({
                   style={{backgroundColor: ri % 2 === 0 ? 'var(--table-row-1)' : 'var(--table-row-2)', color: 'var(--text-primary)'}}
                 >
                   {columns.map((col, ci) => (
-                    <td key={ci} className={`px-4 py-3 align-middle font-medium whitespace-nowrap ${col.className || ""}`}>
+                    <td key={ci} className={`px-4 py-3 align-middle font-medium ${col.className || ""}`}>
                       {typeof col.accessor === "function"
                         ? col.accessor(row)
                         : String(row[col.accessor] ?? "")}
