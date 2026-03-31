@@ -41,12 +41,12 @@ export default function Navbar() {
       <div className="container flex items-center justify-between min-h-[80px] sm:min-h-[96px] py-1 px-4 lg:px-6 max-w-[1600px] mx-auto">
         
         {/* Left Branding */}
-        <Link to="/dashboard" className="flex items-center gap-2 sm:gap-4 flex-shrink-0 group">
-          <div className="relative w-[75px] h-[75px] sm:w-[95px] sm:h-[95px] flex items-center justify-center flex-shrink-0 transform transition-transform group-hover:scale-105">
+        <Link to="/dashboard" className="flex items-center gap-1.5 sm:gap-4 flex-shrink-0 group">
+          <div className="relative w-[50px] h-[50px] sm:w-[75px] sm:h-[75px] lg:w-[95px] lg:h-[95px] flex items-center justify-center flex-shrink-0 transform transition-transform group-hover:scale-105">
             <img src="/logo.png" alt="Pinaka Logo" className="w-[110%] h-[110%] max-w-none object-contain" />
           </div>
           <div className="flex flex-col justify-center ml-0 sm:ml-1">
-            <span className="text-[26px] sm:text-[36px] font-black leading-none tracking-tighter bg-gradient-to-br from-primary via-[#FF8C3A] to-[#FF5500] bg-clip-text text-transparent drop-shadow-sm pb-1">PINAKA</span>
+            <span className="text-[20px] sm:text-[26px] lg:text-[36px] font-black leading-none tracking-tighter bg-gradient-to-br from-primary via-[#FF8C3A] to-[#FF5500] bg-clip-text text-transparent drop-shadow-sm pb-1">PINAKA</span>
           </div>
         </Link>
 
@@ -60,7 +60,7 @@ export default function Navbar() {
                 key={item.path}
                 to={item.path!}
                 className={cn(
-                  "relative flex flex-col items-center justify-center w-[84px] h-[64px] rounded-sm transition-all duration-300 group overflow-hidden",
+                  "relative flex flex-col items-center justify-center w-[74px] lg:w-[84px] h-[64px] rounded-sm transition-all duration-300 group overflow-hidden",
                   active
                     ? "bg-primary/20"
                     : "hover:bg-white/10"
@@ -74,14 +74,14 @@ export default function Navbar() {
                 <Icon 
                   strokeWidth={active ? 2 : 1.5} 
                   className={cn(
-                    "h-[22px] w-[22px] mb-1.5 transition-all duration-300", 
+                    "h-[20px] w-[20px] lg:h-[22px] lg:w-[22px] mb-1.5 transition-all duration-300", 
                     active 
                       ? "text-primary drop-shadow-none scale-110" 
                       : "text-muted-foreground group-hover:text-foreground"
                   )} 
                 />
                 <span className={cn(
-                  "text-[11px] tracking-wide transition-colors",
+                  "text-[10px] lg:text-[11px] tracking-wide transition-colors whitespace-nowrap",
                   active ? "font-bold text-primary" : "font-medium text-muted-foreground group-hover:text-foreground"
                 )}>{item.label}</span>
               </Link>
@@ -90,7 +90,7 @@ export default function Navbar() {
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-2 lg:gap-5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-5 flex-shrink-0">
         
           {/* Theme Toggle */}
           <div className="hidden sm:flex bg-muted p-1 rounded-sm items-center border border-border">
@@ -116,22 +116,22 @@ export default function Navbar() {
             </button>
           </div>
           
-          <div className="h-8 w-px bg-border hidden sm:block mx-1"></div>
+          <div className="h-8 w-px bg-border hidden lg:block mx-1"></div>
 
-          <button className="relative p-2.5 rounded-full hover:bg-muted transition-colors group">
-            <Bell className="h-[22px] w-[22px] text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
-            <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-primary rounded-full" style={{border: '2px solid var(--navbar-bg)'}} />
+          <button className="relative p-1.5 sm:p-2.5 rounded-full hover:bg-muted transition-colors group">
+            <Bell className="h-[20px] w-[20px] sm:h-[22px] sm:w-[22px] text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
+            <span className="absolute top-1 right-1 sm:top-2 sm:right-2 h-2.5 w-2.5 bg-primary rounded-full" style={{border: '2px solid var(--navbar-bg)'}} />
           </button>
           
-          <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold ring-2 ring-transparent cursor-pointer hover:ring-primary/20 transition-all" style={{backgroundColor: 'var(--primary)', color: '#FFFFFF'}}>
+          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ring-2 ring-transparent cursor-pointer hover:ring-primary/20 transition-all font-sans shrink-0" style={{backgroundColor: 'var(--primary)', color: '#FFFFFF'}}>
             BM
           </div>
 
           <button
-            className="md:hidden p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground"
+            className="md:hidden p-1.5 sm:p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            {mobileOpen ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}
+            {mobileOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} /> : <Menu className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />}
           </button>
         </div>
       </div>

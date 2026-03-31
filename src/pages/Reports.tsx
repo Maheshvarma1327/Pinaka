@@ -328,15 +328,15 @@ export default function Reports() {
       <div className="flex flex-col gap-4 mb-8">
         <Breadcrumb items={[{ label: "Reports" }]} />
         <div>
-          <h1 className="text-3xl font-black tracking-tight" style={{color: 'var(--text-primary)'}}>Reports & Analytics</h1>
-          <p className="text-sm mt-1 font-medium" style={{color: 'var(--text-secondary)'}}>Detailed insights and performance metrics across all shops.</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Reports & Analytics</h1>
+          <p className="text-sm text-muted-foreground mt-1 font-medium">Detailed insights and performance metrics across all shops.</p>
         </div>
       </div>
 
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-card p-4 rounded-sm border border-[var(--border)] shadow-none mb-6">
         
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 w-full lg:w-auto">
-          <div className="bg-slate-100 p-1.5 rounded-sm flex items-center shadow-none border border-slate-200/60 h-11 no-scrollbar overflow-x-auto">
+          <div className="bg-slate-100 p-1.5 rounded-sm flex items-center shadow-none border border-slate-200/60 lg:h-11 no-scrollbar overflow-x-auto w-full max-w-full">
             {["Today", "This Week", "This Month", "Custom"].map(t => (
               <button
                 key={t}
@@ -352,11 +352,11 @@ export default function Reports() {
           </div>
 
           {dateRange === "Custom" && (
-            <div className="flex items-center gap-2 bg-card p-1 rounded-sm border border-[var(--border)] shadow-none px-2 h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-card p-1.5 rounded-sm border border-[var(--border)] shadow-none px-2 lg:h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
               <div className="w-full sm:w-[130px]">
                  <AdvancedDatePicker value={customStart} onChange={setCustomStart} placeholder="Start Date" />
               </div>
-              <span className="text-muted-foreground font-bold">-</span>
+              <span className="text-muted-foreground font-bold hidden sm:block">-</span>
               <div className="w-full sm:w-[130px]">
                  <AdvancedDatePicker value={customEnd} onChange={setCustomEnd} placeholder="End Date" />
               </div>

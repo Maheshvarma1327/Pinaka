@@ -194,10 +194,10 @@ export default function ShopDashboard() {
               </span>
             </div>
             
-            <div className="flex items-center gap-4 text-sm font-semibold text-muted-foreground mt-3">
-              <div className="flex items-center gap-1.5"><Store className="w-4 h-4" /> {displayId}</div>
-              <div className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> 9959492720</div>
-              <div className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> Palipattu</div>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm font-semibold text-muted-foreground mt-1">
+              <div className="flex items-center gap-1.5 whitespace-nowrap"><Store className="w-4 h-4" /> {displayId}</div>
+              <div className="flex items-center gap-1.5 whitespace-nowrap"><Phone className="w-4 h-4" /> 9959492720</div>
+              <div className="flex items-center gap-1.5 whitespace-nowrap"><MapPin className="w-4 h-4" /> Palipattu</div>
             </div>
           </div>
           
@@ -212,8 +212,8 @@ export default function ShopDashboard() {
       </div>
 
       {/* Navigation Pills */}
-      <div className="flex justify-center">
-        <div className="p-1.5 rounded-sm flex gap-1 shadow-none border border-border/50" style={{backgroundColor: 'var(--table-header)'}}>
+      <div className="flex justify-center w-full px-2 sm:px-0">
+        <div className="p-1.5 rounded-sm flex flex-wrap sm:flex-nowrap gap-1 shadow-none border border-border/50 max-w-full overflow-x-auto no-scrollbar" style={{backgroundColor: 'var(--table-header)'}}>
           <button 
             onClick={() => setActiveTab("overview")} 
             className={cn(
@@ -267,7 +267,7 @@ export default function ShopDashboard() {
               
             <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 w-full">
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 w-full lg:w-auto">
-                <div className="p-1.5 rounded-sm flex items-center shadow-none border h-11 no-scrollbar overflow-x-auto" style={{backgroundColor: 'var(--navbar-bg)', borderColor: 'var(--border)'}}>
+                <div className="p-1.5 rounded-sm flex items-center shadow-none border lg:h-11 no-scrollbar overflow-x-auto w-full max-w-full" style={{backgroundColor: 'var(--navbar-bg)', borderColor: 'var(--border)'}}>
                   {["Today", "This Week", "This Month", "Custom"].map((t) => (
                     <button 
                       key={t}
@@ -282,11 +282,11 @@ export default function ShopDashboard() {
                   ))}
                 </div>
                 {timeframe === "Custom" && (
-                  <div className="flex items-center gap-2 bg-card p-1 rounded-sm border border-[var(--border)] shadow-none px-2 h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-card p-1.5 rounded-sm border border-[var(--border)] shadow-none px-2 lg:h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
                     <div className="w-full sm:w-[130px]">
                       <AdvancedDatePicker value={customStart} onChange={(val) => setCustomStart(val)} placeholder="Start Date" />
                     </div>
-                    <span className="text-muted-foreground font-bold">-</span>
+                    <span className="text-muted-foreground font-bold hidden sm:block">-</span>
                     <div className="w-full sm:w-[130px]">
                       <AdvancedDatePicker value={customEnd} onChange={(val) => setCustomEnd(val)} placeholder="End Date" />
                     </div>
@@ -295,7 +295,7 @@ export default function ShopDashboard() {
                 
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="h-11 rounded-sm font-bold bg-card border border-[var(--border)] shadow-none hover:text-primary hover:border-primary/30 transition-all px-4 flex items-center gap-2 w-full xl:w-auto" style={{color: 'var(--text-primary)'}}>
+                    <Button variant="outline" className="h-11 rounded-sm font-bold bg-card border border-[var(--border)] shadow-none hover:text-primary hover:border-primary/30 transition-all px-4 flex items-center justify-center gap-2 w-full lg:w-auto" style={{color: 'var(--text-primary)'}}>
                       <DownloadCloud className="w-4 h-4" /> Download
                     </Button>
                   </DialogTrigger>

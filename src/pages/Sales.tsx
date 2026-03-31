@@ -52,10 +52,12 @@ export default function Sales() {
 
   return (
     <div className="animate-fade-in pb-12 w-full">
-      <div className="mb-6">
+      <div className="flex flex-col gap-4 mb-8">
         <Breadcrumb items={[{ label: "Sales" }]} />
-        <h1 className="text-3xl font-black text-foreground tracking-tight mt-6">Sales Management</h1>
-        <p className="text-sm text-muted-foreground mt-2 font-medium">Manage sales, calculate billing, and configure daily shop costs.</p>
+        <div>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Sales Management</h1>
+          <p className="text-sm text-muted-foreground mt-1 font-medium">Manage sales, calculate billing, and configure daily shop costs.</p>
+        </div>
       </div>
       
       {/* FILTER BAR - SAME EVERYWHERE */}
@@ -118,8 +120,8 @@ export default function Sales() {
             </DialogContent>
           </Dialog>
 
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
-             <div className="p-1.5 rounded-sm flex items-center shadow-none border h-11 no-scrollbar overflow-x-auto" style={{backgroundColor: 'var(--navbar-bg)', borderColor: 'var(--border)'}}>
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 w-full lg:w-auto">
+             <div className="p-1.5 rounded-sm flex items-center shadow-none border lg:h-11 no-scrollbar overflow-x-auto w-full max-w-full" style={{backgroundColor: 'var(--navbar-bg)', borderColor: 'var(--border)'}}>
                 {["Today", "This Week", "This Month", "Custom"].map(t => (
                   <button
                     key={t}
@@ -135,10 +137,14 @@ export default function Sales() {
              </div>
 
              {dateFilter === "Custom" && (
-                <div className="flex items-center gap-2 bg-card p-1 rounded-sm border border-[var(--border)] shadow-none px-2 h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
-                   <AdvancedDatePicker value={customStart} onChange={setCustomStart} placeholder="Start Date" />
-                   <span className="text-muted-foreground font-bold">-</span>
-                   <AdvancedDatePicker value={customEnd} onChange={setCustomEnd} placeholder="End Date" />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-card p-1.5 rounded-sm border border-[var(--border)] shadow-none px-2 lg:h-11 animate-in fade-in slide-in-from-left-4 duration-300 w-full lg:w-auto">
+                   <div className="w-full sm:w-[130px]">
+                     <AdvancedDatePicker value={customStart} onChange={setCustomStart} placeholder="Start Date" />
+                   </div>
+                   <span className="text-muted-foreground font-bold hidden sm:block">-</span>
+                   <div className="w-full sm:w-[130px]">
+                     <AdvancedDatePicker value={customEnd} onChange={setCustomEnd} placeholder="End Date" />
+                   </div>
                 </div>
              )}
           </div>
